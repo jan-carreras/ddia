@@ -7,6 +7,11 @@ import (
 	"io"
 	"net"
 	"strconv"
+	"time"
+)
+
+const (
+	dialTimeout = time.Second
 )
 
 // Client is to be used to make requests to the DDIA server
@@ -21,7 +26,7 @@ func NewClient(logger logger.Logger, addr string) *Client {
 
 // Set sends the command SET {key} {value} to the server
 func (c *Client) Set(key, value string) ([]byte, error) {
-	cmd, err := c.encodeBulkStrings([]string{"SET", key, value})
+	cmd, err := encodeBulkStrings([]string{"SET", key, value})
 	if err != nil {
 		return nil, fmt.Errorf("unable to encode the string: %w", err)
 	}
@@ -32,7 +37,6 @@ func (c *Client) Set(key, value string) ([]byte, error) {
 	}
 	defer socket.Close()
 
-	c.logger.Print("sending command")
 	if err := c.send(socket, cmd); err != nil {
 		return nil, fmt.Errorf("unable to send: %w", err)
 	}
@@ -47,7 +51,7 @@ func (c *Client) Set(key, value string) ([]byte, error) {
 
 func (c *Client) connect() (net.Conn, error) {
 	c.logger.Printf("connecting to %q...", c.addr)
-	conn, err := net.Dial("tcp", c.addr)
+	conn, err := net.DialTimeout("tcp", c.addr, dialTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("unable to dial %q: %w", c.addr, err)
 	}
@@ -57,7 +61,7 @@ func (c *Client) connect() (net.Conn, error) {
 
 // send the msg to the socket
 func (c *Client) send(socket net.Conn, msg []byte) error {
-	c.logger.Print("writing on socket...")
+	c.logger.Print("writing command on socket...")
 	if _, err := socket.Write(msg); err != nil {
 		return fmt.Errorf("unable to write to socket: %w", err)
 	}
@@ -79,7 +83,7 @@ func (c *Client) response(socket net.Conn) ([]byte, error) {
 }
 
 // encodeBulkStrings encodes a slice of strings into a RESP Array consisting only Bulk Strings
-func (c *Client) encodeBulkStrings(cmd []string) ([]byte, error) {
+func encodeBulkStrings(cmd []string) ([]byte, error) {
 	length := len(cmd)
 	if length == 0 {
 		length = -1

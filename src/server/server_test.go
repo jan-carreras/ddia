@@ -25,10 +25,4 @@ func TestStart(t *testing.T) {
 	rsp, err := cli.Set("hello", "world")
 	require.NoError(t, err)
 	require.Equal(t, `+OK\r\n`, string(rsp))
-
-	// TODO: Support multiple write operations
-	//rsp, err = cli.Set("bye", "universe")
-	//require.NoError(t, err)
-	//require.Equal(t, `+OK\r\n`, string(rsp))
-
 }
