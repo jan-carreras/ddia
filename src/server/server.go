@@ -64,22 +64,28 @@ func (s *Server) Addr() string {
 }
 
 func (s *Server) handleRequest(conn net.Conn) error {
+	defer func() {
+		if err := conn.Close(); err != nil {
+			s.logger.Printf("unable to close the connection")
+			return
+		}
+		s.logger.Printf("Connection closed %s", conn.RemoteAddr().String())
+	}()
 	if err := conn.SetDeadline(time.Now().Add(time.Second)); err != nil {
 		return fmt.Errorf("error when setting the timeout: %w", err)
 	}
 
+	// TODO: We're not processing requests with more than 1024 bytes
 	buf := make([]byte, 1024) // TODO: Why 1024?
 
 	s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
 
-	// TODO: We're not processing requests with more than 1024 bytes
 	n, err := conn.Read(buf)
 	if err != nil {
 		// TODO: What are the possible network errors here?! We need to know
 		return fmt.Errorf("error when reading: %v", err)
 	}
 
-	// TODO: What happens if we receive an EOF?
 	if n != 0 {
 		s.logger.Printf(string(buf[:n]))
 	}
@@ -88,12 +94,6 @@ func (s *Server) handleRequest(conn net.Conn) error {
 	if _, err := conn.Write([]byte(responseOK)); err != nil {
 		s.logger.Printf("unable to write")
 	}
-
-	if err := conn.Close(); err != nil {
-		s.logger.Printf("unable to close the connection")
-	}
-
-	s.logger.Printf("Connection closed %s", conn.RemoteAddr().String())
 
 	return nil
 }
