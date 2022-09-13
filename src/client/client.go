@@ -1,32 +1,44 @@
 package client
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"io"
+	"log"
+	"net"
 	"strconv"
 )
 
+// Client is to be used to make requests to the DDIA server
 type Client struct {
-	socket io.ReadWriteCloser
+	addr string
 }
 
-func NewClient(s io.ReadWriteCloser) *Client {
-	return &Client{socket: s}
+// NewClient returns a Client
+func NewClient(addr string) *Client {
+	return &Client{addr: addr}
 }
 
+// Set sends the command SET {key} {value} to the server
 func (c *Client) Set(key, value string) ([]byte, error) {
-	cmd, err := c.encodeStr([]string{"SET", key, value})
+	cmd, err := c.encodeBulkStrings([]string{"SET", key, value})
 	if err != nil {
 		return nil, fmt.Errorf("unable to encode the string: %w", err)
 	}
 
-	if err := c.send(cmd); err != nil {
+	log.Printf("connected")
+	socket, err := c.connect()
+	if err != nil {
+		return nil, fmt.Errorf("unable to connect to the remote server: %w", err)
+	}
+	defer socket.Close()
+
+	log.Printf("sending")
+	if err := c.send(socket, cmd); err != nil {
 		return nil, fmt.Errorf("unable to send: %w", err)
 	}
 
-	if rsp, err := c.recv(); err != nil {
+	if rsp, err := c.response(socket); err != nil {
 		return nil, fmt.Errorf("unable to read response: %w", err)
 	} else {
 		return rsp, nil
@@ -34,24 +46,42 @@ func (c *Client) Set(key, value string) ([]byte, error) {
 
 }
 
-func (c *Client) send(msg []byte) error {
-	if _, err := c.socket.Write(msg); err != nil {
+func (c *Client) connect() (net.Conn, error) {
+	conn, err := net.Dial("tcp", c.addr)
+	if err != nil {
+		return nil, fmt.Errorf("unable to dial %q: %w", c.addr, err)
+	}
+
+	return conn, nil
+}
+
+// send the msg to the socket
+func (c *Client) send(socket net.Conn, msg []byte) error {
+	log.Printf("writting")
+	if _, err := socket.Write(msg); err != nil {
 		return fmt.Errorf("unable to write to socket: %w", err)
 	}
+	log.Printf("done writting")
 
 	return nil
 }
 
-func (c *Client) recv() ([]byte, error) {
-	buf, err := bufio.NewReader(c.socket).ReadBytes('\n')
+// response reads from the TCP connection
+func (c *Client) response(socket net.Conn) ([]byte, error) {
+	log.Printf("waiting for response")
+
+	buf := make([]byte, 1024)
+
+	n, err := socket.Read(buf)
 	if err != nil && err != io.EOF {
 		return nil, fmt.Errorf(`unable to read until delimiter \n: %w`, err)
 	}
-	return buf, nil
+	log.Printf("got response")
+	return buf[:n], nil
 }
 
-// encodeStr encodes a slice of strings into a RESP Array consisting only Bulk Strings
-func (c *Client) encodeStr(cmd []string) ([]byte, error) {
+// encodeBulkStrings encodes a slice of strings into a RESP Array consisting only Bulk Strings
+func (c *Client) encodeBulkStrings(cmd []string) ([]byte, error) {
 	length := len(cmd)
 	if length == 0 {
 		length = -1

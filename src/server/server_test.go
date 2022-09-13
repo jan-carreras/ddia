@@ -4,7 +4,6 @@ import (
 	"ddia/src/client"
 	"ddia/src/server"
 	"github.com/stretchr/testify/require"
-	"net"
 	"testing"
 )
 
@@ -17,10 +16,10 @@ func TestStart(t *testing.T) {
 
 	t.Logf("port listening to: %v", s.Addr())
 
-	conn, err := net.Dial("tcp", s.Addr())
-	require.NoError(t, err)
+	// TODO: This approach won't work if we're not adding support for reusing a connection
+	// 	We would need to pass the s.Addr inside and manage the connection there (which makes total sense)
+	cli := client.NewClient(s.Addr())
 
-	cli := client.NewClient(conn)
 	rsp, err := cli.Set("hello", "world")
 	require.NoError(t, err)
 	require.Equal(t, `+OK\r\n`, string(rsp))

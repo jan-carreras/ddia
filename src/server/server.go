@@ -68,7 +68,7 @@ func handleRequest(conn net.Conn) {
 		return
 	}
 
-	// TODO: What happens if we receive and EOF?
+	// TODO: What happens if we receive an EOF?
 	if n != 0 {
 		log.Printf(string(buf[:n]))
 	}
