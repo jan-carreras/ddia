@@ -14,13 +14,13 @@ func TestStart(t *testing.T) {
 
 	// TODO: This usage is pretty bad because we cannot start/stop the service gracefully
 	// 	and we don't have any way to know if it's still alive
-	go func() { require.NoError(t, s.Start()) }()
+	require.NoError(t, s.Start())
 
 	time.Sleep(100 * time.Millisecond)
 
-	t.Logf("port listening to: %v", s.TCPAddr().Port)
+	t.Logf("port listening to: %v", s.Addr())
 
-	conn, err := net.DialTCP("tcp", nil, s.TCPAddr())
+	conn, err := net.Dial("tcp", s.Addr())
 	require.NoError(t, err)
 
 	cli := client.NewClient(conn)

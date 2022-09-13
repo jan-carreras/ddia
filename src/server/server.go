@@ -13,7 +13,8 @@ const (
 
 type Server struct {
 	host   string
-	port   int // TODO: Should this be an integer?
+	port   int
+	addr   string
 	listen net.Listener
 }
 
@@ -28,29 +29,30 @@ func (s *Server) Start() error {
 	}
 
 	s.listen = listen
+	s.addr = listen.Addr().String()
 
-	if _, err := net.ResolveTCPAddr(serverNetwork, listen.Addr().String()); err != nil {
-		return fmt.Errorf("unable to parse address: %w", err)
-	}
+	go func() {
+		defer func() {
+			// TODO: Implement graceful shutdown
+			_ = listen.Close()
+		}()
 
-	defer func() { _ = listen.Close() }()
+		for {
+			conn, err := listen.Accept()
+			if err != nil {
+				log.Printf("[error] %v\n", err)
+				continue
+			}
 
-	for {
-		conn, err := listen.Accept()
-		if err != nil {
-			// TODO: What about the other connections?
-			//  	What are the possible failures?
-			return fmt.Errorf("listen.Accept: %w", err)
+			go handleRequest(conn)
 		}
+	}()
 
-		go handleRequest(conn)
-	}
+	return nil
 }
 
-func (s *Server) TCPAddr() *net.TCPAddr {
-	// TODO: Already checked before
-	addr, _ := net.ResolveTCPAddr(serverNetwork, s.listen.Addr().String())
-	return addr
+func (s *Server) Addr() string {
+	return s.addr
 }
 
 func handleRequest(conn net.Conn) {
