@@ -4,15 +4,20 @@ import (
 	"ddia/src/client"
 	"ddia/src/server"
 	"github.com/stretchr/testify/require"
+	"log"
+	"os"
 	"testing"
 )
 
 func TestClient_Set(t *testing.T) {
-	s := server.NewServer("localhost", 0)
+	logger := log.New(os.Stdout, "[server] ", 0)
+	s := server.NewServer(logger, "localhost", 0)
+
 	err := s.Start()
 	require.NoError(t, err)
 
-	c := client.NewClient(s.Addr())
+	logger = log.New(os.Stdout, "[client] ", 0)
+	c := client.NewClient(logger, s.Addr())
 
 	rsp, err := c.Set("hello", "world")
 	require.NoError(t, err)

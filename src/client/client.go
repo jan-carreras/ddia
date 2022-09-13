@@ -2,21 +2,21 @@ package client
 
 import (
 	"bytes"
+	"ddia/src/logger"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"strconv"
 )
 
 // Client is to be used to make requests to the DDIA server
 type Client struct {
-	addr string
+	logger logger.Logger
+	addr   string
 }
 
-// NewClient returns a Client
-func NewClient(addr string) *Client {
-	return &Client{addr: addr}
+func NewClient(logger logger.Logger, addr string) *Client {
+	return &Client{logger: logger, addr: addr}
 }
 
 // Set sends the command SET {key} {value} to the server
@@ -26,14 +26,13 @@ func (c *Client) Set(key, value string) ([]byte, error) {
 		return nil, fmt.Errorf("unable to encode the string: %w", err)
 	}
 
-	log.Printf("connected")
 	socket, err := c.connect()
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to the remote server: %w", err)
 	}
 	defer socket.Close()
 
-	log.Printf("sending")
+	c.logger.Print("sending command")
 	if err := c.send(socket, cmd); err != nil {
 		return nil, fmt.Errorf("unable to send: %w", err)
 	}
@@ -47,6 +46,7 @@ func (c *Client) Set(key, value string) ([]byte, error) {
 }
 
 func (c *Client) connect() (net.Conn, error) {
+	c.logger.Printf("connecting to %q...", c.addr)
 	conn, err := net.Dial("tcp", c.addr)
 	if err != nil {
 		return nil, fmt.Errorf("unable to dial %q: %w", c.addr, err)
@@ -57,27 +57,25 @@ func (c *Client) connect() (net.Conn, error) {
 
 // send the msg to the socket
 func (c *Client) send(socket net.Conn, msg []byte) error {
-	log.Printf("writting")
+	c.logger.Print("writing on socket...")
 	if _, err := socket.Write(msg); err != nil {
 		return fmt.Errorf("unable to write to socket: %w", err)
 	}
-	log.Printf("done writting")
+	c.logger.Print("done writing")
 
 	return nil
 }
 
 // response reads from the TCP connection
 func (c *Client) response(socket net.Conn) ([]byte, error) {
-	log.Printf("waiting for response")
+	c.logger.Printf("waiting for response...")
 
-	buf := make([]byte, 1024)
-
-	n, err := socket.Read(buf)
+	buf, err := io.ReadAll(socket)
 	if err != nil && err != io.EOF {
 		return nil, fmt.Errorf(`unable to read until delimiter \n: %w`, err)
 	}
-	log.Printf("got response")
-	return buf[:n], nil
+	c.logger.Printf("got response")
+	return buf, nil
 }
 
 // encodeBulkStrings encodes a slice of strings into a RESP Array consisting only Bulk Strings
