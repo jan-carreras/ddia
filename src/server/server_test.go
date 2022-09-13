@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"net"
 	"testing"
-	"time"
 )
 
 func TestStart(t *testing.T) {
@@ -15,8 +14,6 @@ func TestStart(t *testing.T) {
 	// TODO: This usage is pretty bad because we cannot start/stop the service gracefully
 	// 	and we don't have any way to know if it's still alive
 	require.NoError(t, s.Start())
-
-	time.Sleep(100 * time.Millisecond)
 
 	t.Logf("port listening to: %v", s.Addr())
 
