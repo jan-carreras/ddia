@@ -1,0 +1,14 @@
+I want to create a TCP server that receives commands using RESP protocol for SET/GET
+
+https://redis.io/docs/reference/protocol-spec/
+
+Requirements:
+- Start a TCP/IP service that will listen at port 7900 and will allow SET/GET operations
+that will be stored in memory
+
+    SET "hello" "world"
+    > OK
+    GET "hello"
+    > "world"
+    GET "invalid"
+    > "" ??
