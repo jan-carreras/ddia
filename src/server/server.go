@@ -4,6 +4,7 @@ import (
 	"ddia/src/logger"
 	"fmt"
 	"net"
+	"time"
 )
 
 const (
@@ -47,7 +48,11 @@ func (s *Server) Start() error {
 				continue
 			}
 
-			go s.handleRequest(conn)
+			go func() {
+				if err := s.handleRequest(conn); err != nil {
+					s.logger.Printf("[ERROR] handleRequest: %w", err)
+				}
+			}()
 		}
 	}()
 
@@ -58,7 +63,11 @@ func (s *Server) Addr() string {
 	return s.addr
 }
 
-func (s *Server) handleRequest(conn net.Conn) {
+func (s *Server) handleRequest(conn net.Conn) error {
+	if err := conn.SetDeadline(time.Now().Add(time.Second)); err != nil {
+		return fmt.Errorf("error when setting the timeout: %w", err)
+	}
+
 	buf := make([]byte, 1024) // TODO: Why 1024?
 
 	s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
@@ -67,8 +76,7 @@ func (s *Server) handleRequest(conn net.Conn) {
 	n, err := conn.Read(buf)
 	if err != nil {
 		// TODO: What are the possible network errors here?! We need to know
-		s.logger.Printf("error when reading: %v", err)
-		return
+		return fmt.Errorf("error when reading: %v", err)
 	}
 
 	// TODO: What happens if we receive an EOF?
@@ -86,4 +94,6 @@ func (s *Server) handleRequest(conn net.Conn) {
 	}
 
 	s.logger.Printf("Connection closed %s", conn.RemoteAddr().String())
+
+	return nil
 }
