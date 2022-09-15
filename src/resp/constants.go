@@ -1,1 +1,5 @@
 package resp
+
+const (
+	stringOp = '$'
+)

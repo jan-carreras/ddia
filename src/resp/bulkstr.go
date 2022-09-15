@@ -31,7 +31,7 @@ func (b *BulkStr) ReadFrom(r io.Reader) (int64, error) {
 		}
 
 		switch operation {
-		case '$':
+		case stringOp:
 			s := Str{}
 			_, err := s.ReadFrom(r)
 			if err != nil {
