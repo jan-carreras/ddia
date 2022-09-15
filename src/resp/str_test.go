@@ -1,14 +1,14 @@
-package tlv_test
+package resp_test
 
 import (
-	"ddia/src/tlv"
+	"ddia/src/resp"
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 )
 
 func TestStr_ReadFrom(t *testing.T) {
-	s := tlv.Str{}
+	s := resp.Str{}
 	_, err := s.ReadFrom(strings.NewReader("5\r\nhello\r\n"))
 	require.NoError(t, err)
 
@@ -38,10 +38,10 @@ func TestStr_ReadFrom_Errors(t *testing.T) {
 		},
 	}
 
-	s := tlv.Str{}
+	s := resp.Str{}
 	for _, tt := range tests {
 		_, err := s.ReadFrom(strings.NewReader(tt.input))
-		require.ErrorIs(t, err, tlv.ErrParsingError)
+		require.ErrorIs(t, err, resp.ErrParsingError)
 		require.ErrorContains(t, err, tt.expectedErrContains)
 	}
 

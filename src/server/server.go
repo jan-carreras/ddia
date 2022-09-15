@@ -2,7 +2,7 @@ package server
 
 import (
 	"ddia/src/logger"
-	"ddia/src/tlv"
+	"ddia/src/resp"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -144,7 +144,7 @@ func (s *Server) handleRequest(conn net.Conn) error {
 
 func (s *Server) parseBulkString(conn net.Conn) error {
 	s.logger.Print("about to start parsing")
-	b := tlv.BulkStr{}
+	b := resp.BulkStr{}
 
 	if _, err := b.ReadFrom(conn); err != nil {
 		return err

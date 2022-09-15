@@ -1,7 +1,7 @@
-package tlv_test
+package resp_test
 
 import (
-	"ddia/src/tlv"
+	"ddia/src/resp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"strings"
@@ -9,7 +9,7 @@ import (
 )
 
 func TestBulkStr_ReadFrom(t *testing.T) {
-	bulk := tlv.BulkStr{}
+	bulk := resp.BulkStr{}
 
 	input := strings.NewReader("2\r\n$5\r\nhello\r\n$5\r\nworld\r\n")
 	_, err := bulk.ReadFrom(input)
@@ -52,19 +52,19 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 		},
 	}
 
-	bulk := tlv.BulkStr{}
+	bulk := resp.BulkStr{}
 
 	for _, tt := range tests {
 		_, err := bulk.ReadFrom(strings.NewReader(tt.input))
 		assert.Error(t, err)
-		require.ErrorIs(t, err, tlv.ErrParsingError)
+		require.ErrorIs(t, err, resp.ErrParsingError)
 		require.ErrorContains(t, err, tt.expectErrContains)
 	}
 
 }
 
 func TestBulkStr_StringAndBytes(t *testing.T) {
-	bulk := tlv.BulkStr{}
+	bulk := resp.BulkStr{}
 
 	_, err := bulk.ReadFrom(strings.NewReader("2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"))
 	require.NoError(t, err)
