@@ -90,13 +90,13 @@ func encodeBulkStrings(cmd []string) ([]byte, error) {
 	}
 
 	buf := bytes.Buffer{}
-	_, err := buf.WriteString(`*` + strconv.Itoa(length) + `\r\n`)
+	_, err := buf.WriteString(`*` + strconv.Itoa(length) + "\r\n")
 	if err != nil {
 		return nil, fmt.Errorf("unable to start message: %w", err)
 	}
 
 	for _, s := range cmd {
-		_, err := buf.WriteString(`$` + strconv.Itoa(len(s)) + `\r\n` + s + `\r\n`)
+		_, err := buf.WriteString(`$` + strconv.Itoa(len(s)) + "\r\n" + s + "\r\n")
 		if err != nil {
 			return nil, fmt.Errorf("unable to write a word in message: %w", err)
 		}
