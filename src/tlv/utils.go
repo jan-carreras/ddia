@@ -47,7 +47,7 @@ func ignoreDelimiters(r io.Reader) error {
 	}
 
 	if !(char == '\r' || char == '\n') {
-		return fmt.Errorf("unexpected caracter %q", string(char))
+		return fmt.Errorf("unexpected character %q", string(char))
 	}
 
 	// If we read \n, we're ignored all delimiters
