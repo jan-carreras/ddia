@@ -40,9 +40,10 @@ func (b *BulkStr) ReadFrom(r io.Reader) (int64, error) {
 
 			b.strings = append(b.strings, s.String())
 		default:
-			return 0, fmt.Errorf("unknown operation %q: %w", string(operation), ErrParsingError)
+			return 0, fmt.Errorf("unknown operator %q: %w", string(operation), ErrParsingError)
 		}
 	}
 
+	// TODO: The reporting on the read characters is broken
 	return 0, nil
 }

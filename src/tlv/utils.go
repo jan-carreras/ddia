@@ -15,6 +15,11 @@ func readLength(r io.Reader) (int, error) {
 			return 0, err
 		}
 
+		// The first element should always be numeric
+		if arrayLength == 0 && (num < '0' || num > '9') {
+			return 0, fmt.Errorf("length must be [0-9]+, %q instead", num)
+		}
+
 		if num == '\r' { // Stop parsing, consuming one last character
 			if err := ignoreDelimiters(r); err != nil {
 				return 0, err
