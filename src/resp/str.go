@@ -3,7 +3,6 @@ package resp
 import (
 	"fmt"
 	"io"
-	"strconv"
 )
 
 type Str struct {
@@ -14,19 +13,9 @@ func (b *Str) Bytes() []byte  { return []byte(b.s) }
 func (b *Str) String() string { return b.s }
 
 func (b *Str) WriteTo(w io.Writer) (int64, error) {
-	_, err := w.Write([]byte(string(bulkStringOp) + strconv.Itoa(len(b.s)) + "\r\n"))
-	if err != nil {
+	out := fmt.Sprintf("%c%d\r\n%s\r\n", bulkStringOp, len(b.s), b.s)
+	if _, err := w.Write([]byte(out)); err != nil {
 		return 0, fmt.Errorf("writing string operator: %w", err)
-	}
-
-	_, err = w.Write([]byte(b.s))
-	if err != nil {
-		return 0, fmt.Errorf("writing string to writter: %w", err)
-	}
-
-	_, err = w.Write([]byte("\r\n"))
-	if err != nil {
-		return 0, fmt.Errorf("unable to write end sequence: %w", err)
 	}
 
 	return 0, nil
@@ -43,10 +32,12 @@ func (b *Str) ReadFrom(r io.Reader) (int64, error) {
 	}
 
 	buf := make([]byte, strLen)
+
 	written, err := r.Read(buf)
 	if err != nil {
 		return 0, fmt.Errorf("r.Read(len=%d) string: %v: %w", strLen, err, ErrParsingError)
 	}
+
 	if written != strLen {
 		return 0, fmt.Errorf("insufficient data read: expecting Str of length %d, having %d : %w", written, strLen, ErrParsingError)
 	}
