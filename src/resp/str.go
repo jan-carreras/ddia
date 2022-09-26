@@ -13,12 +13,12 @@ func (b *Str) Bytes() []byte  { return []byte(b.s) }
 func (b *Str) String() string { return b.s }
 
 func (b *Str) WriteTo(w io.Writer) (int64, error) {
-	out := fmt.Sprintf("%c%d\r\n%s\r\n", bulkStringOp, len(b.s), b.s)
-	if _, err := w.Write([]byte(out)); err != nil {
+	n, err := fmt.Fprintf(w, "%c%d\r\n%s\r\n", bulkStringOp, len(b.s), b.s)
+	if err != nil {
 		return 0, fmt.Errorf("%w: writing string operator: %v", ErrEncodingError, err)
 	}
 
-	return 0, nil
+	return int64(n), nil
 }
 
 func (b *Str) ReadFrom(r io.Reader) (int64, error) {
