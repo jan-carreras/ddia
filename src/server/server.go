@@ -15,15 +15,6 @@ const (
 	responseOK    = `+OK\r\n`
 )
 
-/**
-type Payload interface {
-	fmt.Stringer
-	io.ReaderFrom
-	io.WriterTo
-	Bytes() []byte
-}
-*/
-
 type Server struct {
 	logger logger.Logger
 	host   string
@@ -108,28 +99,6 @@ func (s *Server) handleRequest(conn net.Conn) error {
 		s.logger.Printf("unable to write")
 	}
 	return nil
-
-	/**
-	// TODO: We're not processing requests with more than 1024 bytes
-	buf := make([]byte, 1024) // TODO: Why 1024?
-	n, err = conn.Read(buf)
-	if err != nil {
-		// TODO: What are the possible network errors here?! We need to know
-		return fmt.Errorf("error when reading: %v", err)
-	}
-
-	if n != 0 {
-		s.logger.Println(string(buf[:n]))
-	}
-
-	// TODO: Check that we've written all the bytes we wanted to
-	if _, err := conn.Write([]byte(responseOK)); err != nil {
-		s.logger.Printf("unable to write")
-	}
-
-	return nil
-
-	*/
 }
 
 func (s *Server) parseBulkString(conn io.Reader) error {
@@ -139,8 +108,6 @@ func (s *Server) parseBulkString(conn io.Reader) error {
 	if _, err := b.ReadFrom(conn); err != nil {
 		return err
 	}
-
-	fmt.Println("ParseBulkStrings", b.String(), "??")
 
 	return nil
 }
