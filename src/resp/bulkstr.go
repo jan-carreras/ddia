@@ -37,7 +37,7 @@ func (b *BulkStr) readFrom(r io.Reader) (int64, error) {
 	}
 
 	for word := 0; word < arrayLength; word++ {
-		r, operation, err := peakOperation(r)
+		r, operation, err := PeakOperation(r)
 		if err != nil {
 			return 0, fmt.Errorf("unable to read operator: %v", err)
 		}

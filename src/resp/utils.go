@@ -69,9 +69,9 @@ func ignoreDelimiters(r io.Reader) error {
 	return nil
 }
 
-// peakOperation returns the next character on the reader, and a new reader with
+// PeakOperation returns the next character on the reader, and a new reader with
 // that character in the stream.
-func peakOperation(r io.Reader) (io.Reader, byte, error) {
+func PeakOperation(r io.Reader) (io.Reader, byte, error) {
 	var operation byte
 	if err := binary.Read(r, binary.BigEndian, &operation); err != nil {
 		return r, 0, fmt.Errorf("unable to read operator: %v", err)

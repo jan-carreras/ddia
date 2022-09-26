@@ -3,9 +3,9 @@ package server
 import (
 	"ddia/src/logger"
 	"ddia/src/resp"
-	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"time"
 )
@@ -89,25 +89,15 @@ func (s *Server) handleRequest(conn net.Conn) error {
 
 	s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
 
-	/**
-	reader := bufio.NewScanner(conn)
-	reader.Split(bufio.ScanLines)
-
-	for reader.Scan() {
-		fmt.Println(">>>>", reader.Text())
-	}
-	**/
-
-	var operation byte
-	err := binary.Read(conn, binary.BigEndian, &operation)
+	reader, operation, err := resp.PeakOperation(conn)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to peak operation: %w", err)
 	}
 
 	s.logger.Printf("parsing operation: %q\n", string(operation))
 	switch string(operation) {
 	case `*`:
-		if err := s.parseBulkString(conn); err != nil {
+		if err := s.parseBulkString(reader); err != nil {
 			return fmt.Errorf("parseBulkString: %w", err)
 		}
 	default:
@@ -142,7 +132,7 @@ func (s *Server) handleRequest(conn net.Conn) error {
 	*/
 }
 
-func (s *Server) parseBulkString(conn net.Conn) error {
+func (s *Server) parseBulkString(conn io.Reader) error {
 	s.logger.Print("about to start parsing")
 	b := resp.BulkStr{}
 
