@@ -18,19 +18,28 @@ func (b *BulkStr) WriteTo(_ io.Writer) (int64, error) {
 }
 
 func (b *BulkStr) ReadFrom(r io.Reader) (int64, error) {
+	n, err := b.readFrom(r)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %v", ErrParsingError, err)
+	}
+
+	return n, nil
+}
+
+func (b *BulkStr) readFrom(r io.Reader) (int64, error) {
 	if err := checkOperation(r, array); err != nil {
 		return 0, fmt.Errorf("checkOperation: %w", err)
 	}
 
 	arrayLength, err := readLength(r)
 	if err != nil {
-		return 0, fmt.Errorf("readLength: %w: %v", ErrParsingError, err)
+		return 0, fmt.Errorf("readLength: %v", err)
 	}
 
 	for word := 0; word < arrayLength; word++ {
 		r, operation, err := peakOperation(r)
 		if err != nil {
-			return 0, fmt.Errorf("unable to read operator: %w: %v", ErrParsingError, err)
+			return 0, fmt.Errorf("unable to read operator: %v", err)
 		}
 
 		switch operation {
@@ -38,12 +47,12 @@ func (b *BulkStr) ReadFrom(r io.Reader) (int64, error) {
 			s := Str{}
 			_, err := s.ReadFrom(r)
 			if err != nil {
-				return 0, fmt.Errorf("str.ReadFrom: %w: %v", ErrParsingError, err)
+				return 0, fmt.Errorf("str.ReadFrom: %v", err)
 			}
 
 			b.strings = append(b.strings, s.String())
 		default:
-			return 0, fmt.Errorf("unknown operator %q: %w", string(operation), ErrParsingError)
+			return 0, fmt.Errorf("unknown operator %q", string(operation))
 		}
 	}
 

@@ -47,7 +47,7 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 		},
 		{
 			name:              "element is string but malformed",
-			input:             "1\r\n$5\r\n",
+			input:             "*1\r\n$5\r\n",
 			expectErrContains: "",
 		},
 	}
