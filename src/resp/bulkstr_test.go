@@ -1,6 +1,7 @@
 package resp_test
 
 import (
+	"bytes"
 	"ddia/src/resp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -73,4 +74,20 @@ func TestBulkStr_StringAndBytes(t *testing.T) {
 
 	require.Equal(t, "hello world", bulk.String())
 	require.Equal(t, []byte(bulk.String()), bulk.Bytes())
+}
+
+func TestBulkStr_WriteTo(t *testing.T) {
+	bulk := resp.BulkStr{}
+
+	text := "*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
+
+	_, err := bulk.ReadFrom(strings.NewReader(text))
+	require.NoError(t, err)
+
+	buf := &bytes.Buffer{}
+	n, err := bulk.WriteTo(buf)
+	require.NoError(t, err)
+	require.NotZero(t, n)
+
+	require.Equal(t, text, buf.String())
 }

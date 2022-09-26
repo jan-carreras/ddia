@@ -10,11 +10,35 @@ type BulkStr struct {
 	strings []string
 }
 
+func NewBulkStr(strings []string) BulkStr {
+	return BulkStr{strings: strings}
+}
+
 func (b *BulkStr) Bytes() []byte  { return []byte(b.String()) }
 func (b *BulkStr) String() string { return strings.Join(b.strings, " ") }
 
-func (b *BulkStr) WriteTo(_ io.Writer) (int64, error) {
-	return 0, nil
+func (b *BulkStr) WriteTo(w io.Writer) (int64, error) {
+	length := len(b.strings)
+	if length == 0 {
+		length = -1
+	}
+
+	count := 0
+	n, err := fmt.Fprintf(w, "*%d\r\n", length)
+	if err != nil {
+		return 0, fmt.Errorf("unable to start message: %w", err)
+	}
+	count += n
+
+	for _, s := range b.strings {
+		n, err := fmt.Fprintf(w, "$%d\r\n%s\r\n", len(s), s)
+		if err != nil {
+			return 0, fmt.Errorf("unable to write a word in message: %w", err)
+		}
+		count += n
+	}
+
+	return int64(count), nil
 }
 
 func (b *BulkStr) ReadFrom(r io.Reader) (int64, error) {
