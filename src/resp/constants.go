@@ -1,5 +1,6 @@
 package resp
 
 const (
-	stringOp = '$'
+	bulkStringOp = '$'
+	array        = '*'
 )

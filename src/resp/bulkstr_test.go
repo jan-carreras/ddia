@@ -11,7 +11,7 @@ import (
 func TestBulkStr_ReadFrom(t *testing.T) {
 	bulk := resp.BulkStr{}
 
-	input := strings.NewReader("2\r\n$5\r\nhello\r\n$5\r\nworld\r\n")
+	input := strings.NewReader("*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n")
 	_, err := bulk.ReadFrom(input)
 	require.NoError(t, err)
 
@@ -27,22 +27,22 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 	}{
 		{
 			name:              "missing array length",
-			input:             "\r\n$5\r\nhello\r\n",
+			input:             "*\r\n$5\r\nhello\r\n",
 			expectErrContains: "readLength",
 		},
 		{
 			name:              "empty input",
-			input:             "",
+			input:             "*",
 			expectErrContains: "readLength",
 		},
 		{
 			name:              "missing elements",
-			input:             "10\r\n",
+			input:             "*10\r\n",
 			expectErrContains: "unable to read operator",
 		},
 		{
 			name:              "element of array is not string",
-			input:             "1\r\n:5\r\n",
+			input:             "*1\r\n:5\r\n",
 			expectErrContains: "unknown operator",
 		},
 		{
@@ -55,18 +55,20 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 	bulk := resp.BulkStr{}
 
 	for _, tt := range tests {
-		_, err := bulk.ReadFrom(strings.NewReader(tt.input))
-		assert.Error(t, err)
-		require.ErrorIs(t, err, resp.ErrParsingError)
-		require.ErrorContains(t, err, tt.expectErrContains)
-	}
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := bulk.ReadFrom(strings.NewReader(tt.input))
+			assert.Error(t, err)
+			require.ErrorIs(t, err, resp.ErrParsingError)
+			require.ErrorContains(t, err, tt.expectErrContains)
+		})
 
+	}
 }
 
 func TestBulkStr_StringAndBytes(t *testing.T) {
 	bulk := resp.BulkStr{}
 
-	_, err := bulk.ReadFrom(strings.NewReader("2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"))
+	_, err := bulk.ReadFrom(strings.NewReader("*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"))
 	require.NoError(t, err)
 
 	require.Equal(t, "hello world", bulk.String())

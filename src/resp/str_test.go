@@ -1,6 +1,7 @@
 package resp_test
 
 import (
+	"bytes"
 	"ddia/src/resp"
 	"github.com/stretchr/testify/require"
 	"strings"
@@ -9,10 +10,18 @@ import (
 
 func TestStr_ReadFrom(t *testing.T) {
 	s := resp.Str{}
-	_, err := s.ReadFrom(strings.NewReader("5\r\nhello\r\n"))
+	_, err := s.ReadFrom(strings.NewReader("$5\r\nhello\r\n"))
 	require.NoError(t, err)
 
 	require.Equal(t, "hello", s.String())
+}
+
+func TestStr_ReadFrom_EmptyString(t *testing.T) {
+	s := resp.Str{}
+	_, err := s.ReadFrom(strings.NewReader("$0\r\n\r\n"))
+	require.NoError(t, err)
+
+	require.Equal(t, "", s.String())
 }
 
 func TestStr_ReadFrom_Errors(t *testing.T) {
@@ -22,18 +31,28 @@ func TestStr_ReadFrom_Errors(t *testing.T) {
 		expectedErrContains string
 	}{
 		{
-			name:                "invalid length",
+			name:                "missing operation type",
 			input:               "\r\nhello\r\n",
+			expectedErrContains: "unknown operation",
+		},
+		{
+			name:                "invalid operation type",
+			input:               "?\r\nhello\r\n",
+			expectedErrContains: "unknown operation",
+		},
+		{
+			name:                "invalid length",
+			input:               "$\r\nhello\r\n",
 			expectedErrContains: "readLength",
 		},
 		{
 			name:                "length and string mismatch: string too short",
-			input:               "10\r\nhello\r\n",
+			input:               "$10\r\nhello\r\n",
 			expectedErrContains: "insufficient data read",
 		},
 		{
 			name:                "length and string mismatch: string too long",
-			input:               "5\r\nhello world\r\n",
+			input:               "$5\r\nhello world\r\n",
 			expectedErrContains: "unexpected character",
 		},
 	}
@@ -45,4 +64,30 @@ func TestStr_ReadFrom_Errors(t *testing.T) {
 		require.ErrorContains(t, err, tt.expectedErrContains)
 	}
 
+}
+
+func TestStr_WriteTo(t *testing.T) {
+	original := "$5\r\nhello\r\n"
+	s := resp.Str{}
+	_, err := s.ReadFrom(strings.NewReader(original))
+	require.NoError(t, err)
+
+	buf := &bytes.Buffer{}
+	_, err = s.WriteTo(buf)
+	require.NoError(t, err)
+
+	require.Equal(t, original, buf.String())
+}
+
+func TestStr_EmptyString(t *testing.T) {
+	original := "$0\r\n\r\n"
+	s := resp.Str{}
+	_, err := s.ReadFrom(strings.NewReader(original))
+	require.NoError(t, err)
+
+	buf := &bytes.Buffer{}
+	_, err = s.WriteTo(buf)
+	require.NoError(t, err)
+
+	require.Equal(t, original, buf.String())
 }

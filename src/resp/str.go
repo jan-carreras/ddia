@@ -3,6 +3,7 @@ package resp
 import (
 	"fmt"
 	"io"
+	"strconv"
 )
 
 type Str struct {
@@ -13,10 +14,29 @@ func (b *Str) Bytes() []byte  { return []byte(b.s) }
 func (b *Str) String() string { return b.s }
 
 func (b *Str) WriteTo(w io.Writer) (int64, error) {
+	_, err := w.Write([]byte(string(bulkStringOp) + strconv.Itoa(len(b.s)) + "\r\n"))
+	if err != nil {
+		return 0, fmt.Errorf("writing string operator: %w", err)
+	}
+
+	_, err = w.Write([]byte(b.s))
+	if err != nil {
+		return 0, fmt.Errorf("writing string to writter: %w", err)
+	}
+
+	_, err = w.Write([]byte("\r\n"))
+	if err != nil {
+		return 0, fmt.Errorf("unable to write end sequence: %w", err)
+	}
+
 	return 0, nil
 }
 
 func (b *Str) ReadFrom(r io.Reader) (int64, error) {
+	if err := checkOperation(r, bulkStringOp); err != nil {
+		return 0, fmt.Errorf("checkOperation: %w", err)
+	}
+
 	strLen, err := readLength(r)
 	if err != nil {
 		return 0, fmt.Errorf("readLength: %v: %w", err, ErrParsingError)

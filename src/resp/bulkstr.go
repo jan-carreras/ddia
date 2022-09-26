@@ -1,7 +1,6 @@
 package resp
 
 import (
-	"encoding/binary"
 	"fmt"
 	"io"
 	"strings"
@@ -14,24 +13,28 @@ type BulkStr struct {
 func (b *BulkStr) Bytes() []byte  { return []byte(b.String()) }
 func (b *BulkStr) String() string { return strings.Join(b.strings, " ") }
 
-func (b *BulkStr) WriteTo(w io.Writer) (int64, error) {
+func (b *BulkStr) WriteTo(_ io.Writer) (int64, error) {
 	return 0, nil
 }
 
 func (b *BulkStr) ReadFrom(r io.Reader) (int64, error) {
+	if err := checkOperation(r, array); err != nil {
+		return 0, fmt.Errorf("checkOperation: %w", err)
+	}
+
 	arrayLength, err := readLength(r)
 	if err != nil {
 		return 0, fmt.Errorf("readLength: %w: %v", ErrParsingError, err)
 	}
 
 	for word := 0; word < arrayLength; word++ {
-		var operation byte
-		if err := binary.Read(r, binary.BigEndian, &operation); err != nil {
+		r, operation, err := peakOperation(r)
+		if err != nil {
 			return 0, fmt.Errorf("unable to read operator: %w: %v", ErrParsingError, err)
 		}
 
 		switch operation {
-		case stringOp:
+		case bulkStringOp:
 			s := Str{}
 			_, err := s.ReadFrom(r)
 			if err != nil {
