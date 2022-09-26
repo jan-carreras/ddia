@@ -3,10 +3,10 @@ package client
 import (
 	"bytes"
 	"ddia/src/logger"
+	"ddia/src/resp"
 	"fmt"
 	"io"
 	"net"
-	"strconv"
 	"time"
 )
 
@@ -35,7 +35,7 @@ func (c *Client) Set(key, value string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to the remote server: %w", err)
 	}
-	defer socket.Close()
+	defer func() { _ = socket.Close() }()
 
 	if err := c.send(socket, cmd); err != nil {
 		return nil, fmt.Errorf("unable to send: %w", err)
@@ -84,22 +84,11 @@ func (c *Client) response(socket net.Conn) ([]byte, error) {
 
 // encodeBulkStrings encodes a slice of strings into a RESP Array consisting only Bulk Strings
 func encodeBulkStrings(cmd []string) ([]byte, error) {
-	length := len(cmd)
-	if length == 0 {
-		length = -1
-	}
-
-	buf := bytes.Buffer{}
-	_, err := buf.WriteString(`*` + strconv.Itoa(length) + "\r\n")
+	bulkStr := resp.NewBulkStr(cmd)
+	buf := &bytes.Buffer{}
+	_, err := bulkStr.WriteTo(buf)
 	if err != nil {
-		return nil, fmt.Errorf("unable to start message: %w", err)
-	}
-
-	for _, s := range cmd {
-		_, err := buf.WriteString(`$` + strconv.Itoa(len(s)) + "\r\n" + s + "\r\n")
-		if err != nil {
-			return nil, fmt.Errorf("unable to write a word in message: %w", err)
-		}
+		return nil, err
 	}
 
 	return buf.Bytes(), nil
