@@ -33,13 +33,13 @@ func (b *Str) ReadFrom(r io.Reader) (int64, error) {
 
 	buf := make([]byte, strLen)
 
-	written, err := r.Read(buf)
+	read, err := r.Read(buf)
 	if err != nil {
 		return 0, fmt.Errorf("r.Read(len=%d) string: %v: %w", strLen, err, ErrParsingError)
 	}
 
-	if written != strLen {
-		return 0, fmt.Errorf("insufficient data read: expecting Str of length %d, having %d : %w", written, strLen, ErrParsingError)
+	if read != strLen {
+		return 0, fmt.Errorf("insufficient data read: expecting Str of length %d, having %d : %w", read, strLen, ErrParsingError)
 	}
 
 	b.s = string(buf)
