@@ -1,21 +1,21 @@
 package server_test
 
 import (
+	"context"
 	"ddia/src/client"
 	"ddia/src/server"
 	"github.com/stretchr/testify/require"
 	"log"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestStart(t *testing.T) {
 	logger := log.New(os.Stdout, "[server] ", 0)
 	s := server.NewServer(logger, "localhost", 0)
 
-	// TODO: This usage is pretty bad because we cannot start/stop the service gracefully
-	// 	and we don't have any way to know if it's still alive
-	require.NoError(t, s.Start())
+	require.NoError(t, s.Start(context.Background()))
 
 	logger = log.New(os.Stdout, "[client] ", 0)
 	// TODO: This approach won't work if we're not adding support for reusing a connection
@@ -25,4 +25,16 @@ func TestStart(t *testing.T) {
 	rsp, err := cli.Set("hello", "world")
 	require.NoError(t, err)
 	require.Equal(t, `+OK\r\n`, string(rsp))
+}
+
+func TestStart_GracefulShutdown(t *testing.T) {
+	logger := log.New(os.Stdout, "[server] ", 0)
+	s := server.NewServer(logger, "localhost", 0)
+
+	ctx := context.Background()
+
+	require.NoError(t, s.Start(ctx))
+
+	time.Sleep(100 * time.Millisecond)
+	require.NoError(t, s.Stop())
 }

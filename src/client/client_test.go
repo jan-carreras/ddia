@@ -1,6 +1,7 @@
 package client_test
 
 import (
+	"context"
 	"ddia/src/client"
 	"ddia/src/server"
 	"github.com/stretchr/testify/require"
@@ -13,7 +14,7 @@ func TestClient_Set(t *testing.T) {
 	logger := log.New(os.Stdout, "[server] ", 0)
 	s := server.NewServer(logger, "localhost", 0)
 
-	err := s.Start()
+	err := s.Start(context.Background())
 	require.NoError(t, err)
 
 	logger = log.New(os.Stdout, "[client] ", 0)

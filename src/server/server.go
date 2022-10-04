@@ -1,12 +1,14 @@
 package server
 
 import (
+	"context"
 	"ddia/src/logger"
 	"ddia/src/resp"
 	"errors"
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -16,57 +18,86 @@ const (
 )
 
 type Server struct {
-	logger logger.Logger
-	host   string
-	port   int
-	addr   string
-	listen net.Listener
+	logger   logger.Logger
+	host     string
+	port     int
+	addr     string
+	listener net.Listener
+	// quit signals if we want to keep listening for new incoming requests or not
+	quit chan interface{}
+	// wg is used for the Listen go routine, and for the goroutines processing each request
+	wg sync.WaitGroup
 }
 
 func NewServer(logger logger.Logger, host string, port int) *Server {
-	return &Server{logger: logger, host: host, port: port}
+	return &Server{logger: logger, host: host, port: port, quit: make(chan interface{})}
 }
 
-func (s *Server) Start() error {
-	listen, err := net.Listen(serverNetwork, fmt.Sprintf("%s:%d", s.host, s.port))
+func (s *Server) Start(ctx context.Context) error {
+	listener, err := net.Listen(serverNetwork, fmt.Sprintf("%s:%d", s.host, s.port))
 	if err != nil {
 		return fmt.Errorf("net.Listen: %w", err)
 	}
 
-	s.listen = listen
-	s.addr = listen.Addr().String()
+	s.listener = listener
+	s.addr = listener.Addr().String()
 
-	s.logger.Printf("listening at %q...", s.addr)
+	s.logger.Printf("Listening at %q", s.addr)
 
-	go func() {
-		defer func() {
-			// TODO: Implement graceful shutdown
-			_ = listen.Close()
-		}()
-
-		for {
-			conn, err := listen.Accept()
-			if err != nil {
-				s.logger.Printf("[error] %v\n", err)
-				continue
-			}
-
-			go func() {
-				if err := s.handleRequest(conn); err != nil {
-					s.logger.Printf("[ERROR] handleRequest: %v\n", err)
-				}
-			}()
-		}
-	}()
+	s.wg.Add(1)
+	go s.serve(ctx)
 
 	return nil
+}
+
+// serve is to be run as a Goroutine
+func (s *Server) serve(ctx context.Context) {
+	defer s.wg.Done()
+	for {
+		conn, err := s.listener.Accept()
+
+		if err != nil {
+			select {
+			case <-s.quit:
+				s.logger.Printf("Gracefully shutting down...")
+				return // Graceful shutdown
+			default:
+				var opError *net.OpError
+				if ok := errors.As(err, &opError); ok {
+					if opError.Temporary() {
+						s.logger.Printf("[error][temporary] %v\n", err)
+						continue
+					}
+				}
+
+				s.logger.Printf("[error] %v\n", err)
+				return // Non-Temporary error. Exiting with failure
+			}
+		}
+
+		s.wg.Add(1)
+		go func() {
+			defer s.wg.Done()
+			if err := s.handleRequest(ctx, conn); err != nil {
+				s.logger.Printf("[ERROR] handleRequest: %v\n", err)
+			}
+		}()
+	}
+}
+
+func (s *Server) Stop() error {
+	close(s.quit)
+	err := s.listener.Close() // Close listener, thus new connections
+	s.wg.Wait()               // Waiting for clients to finish
+	s.logger.Println("Server stopped")
+	return err
 }
 
 func (s *Server) Addr() string {
 	return s.addr
 }
 
-func (s *Server) handleRequest(conn net.Conn) error {
+func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 	defer func() {
 		if err := conn.Close(); err != nil {
 			s.logger.Printf("unable to close the connection")
