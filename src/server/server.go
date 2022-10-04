@@ -109,5 +109,7 @@ func (s *Server) parseBulkString(conn io.Reader) error {
 		return err
 	}
 
+	fmt.Println("Command sent", b.String())
+
 	return nil
 }
