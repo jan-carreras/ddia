@@ -14,4 +14,4 @@ Designing Data-Intensive Applications.
 * [ ] Be able to persist data even after a kill -9
 * [ ] Be able to have a read-replica
 * [ ] Implement a heartbeat system to monitor the status of the system
-* [ ] Allow client to define how many replicas must commit the information before OK 
+* [ ] Allow client to define how many replicas must commit the information before OK
