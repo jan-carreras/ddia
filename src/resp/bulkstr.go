@@ -14,8 +14,13 @@ func NewBulkStr(strings []string) BulkStr {
 	return BulkStr{strings: strings}
 }
 
-func (b *BulkStr) Bytes() []byte  { return []byte(b.String()) }
+func (b *BulkStr) Bytes() []byte { return []byte(b.String()) }
+
 func (b *BulkStr) String() string { return strings.Join(b.strings, " ") }
+
+func (b *BulkStr) Strings() []string {
+	return b.strings
+}
 
 func (b *BulkStr) WriteTo(w io.Writer) (int64, error) {
 	length := len(b.strings)

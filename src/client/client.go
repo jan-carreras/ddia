@@ -28,7 +28,7 @@ func NewClient(logger logger.Logger, addr string) *Client {
 func (c *Client) Set(key, value string) ([]byte, error) {
 	cmd, err := encodeBulkStrings([]string{"SET", key, value})
 	if err != nil {
-		return nil, fmt.Errorf("unable to encode the string: %w", err)
+		return nil, fmt.Errorf("unable to encode SET command: %w", err)
 	}
 
 	socket, err := c.connect()
@@ -41,14 +41,37 @@ func (c *Client) Set(key, value string) ([]byte, error) {
 		return nil, fmt.Errorf("unable to send: %w", err)
 	}
 
-	if rsp, err := c.response(socket); err != nil {
+	rsp, err := c.response(socket)
+	if err != nil {
 		return nil, fmt.Errorf("unable to read response: %w", err)
-	} else {
-		return rsp, nil
 	}
+	return rsp, nil
 }
 
-// TODO: Implement Get
+func (c *Client) Get(key string) ([]byte, error) {
+	cmd, err := encodeBulkStrings([]string{"GET", key})
+	if err != nil {
+		return nil, fmt.Errorf("unable to encode GET command: %w", err)
+	}
+
+	socket, err := c.connect()
+	if err != nil {
+		return nil, fmt.Errorf("unable to connecto to remove server: %w", err)
+	}
+	defer func() { _ = socket.Close() }()
+
+	if err := c.send(socket, cmd); err != nil {
+		return nil, fmt.Errorf("send: %w", err)
+	}
+
+	rsp, err := c.response(socket)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read response: %w", err)
+	}
+
+	return rsp, nil
+
+}
 
 func (c *Client) connect() (net.Conn, error) {
 	c.logger.Printf("connecting to %q...", c.addr)

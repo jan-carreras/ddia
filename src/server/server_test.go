@@ -4,6 +4,7 @@ import (
 	"context"
 	"ddia/src/client"
 	"ddia/src/server"
+	"ddia/src/storage"
 	"github.com/stretchr/testify/require"
 	"log"
 	"os"
@@ -13,7 +14,7 @@ import (
 
 func TestStart(t *testing.T) {
 	logger := log.New(os.Stdout, "[server] ", 0)
-	s := server.NewServer(logger, "localhost", 0)
+	s := server.NewServer(logger, "localhost", 0, storage.NewInMemory())
 
 	require.NoError(t, s.Start(context.Background()))
 
@@ -27,9 +28,29 @@ func TestStart(t *testing.T) {
 	require.Equal(t, `+OK\r\n`, string(rsp))
 }
 
+func TestServer_Set(t *testing.T) {
+	store := storage.NewInMemory()
+
+	logger := log.New(os.Stdout, "[server] ", 0)
+	s := server.NewServer(logger, "localhost", 0, store)
+
+	require.NoError(t, s.Start(context.Background()))
+
+	logger = log.New(os.Stdout, "[client] ", 0)
+	cli := client.NewClient(logger, s.Addr())
+
+	rsp, err := cli.Set("hello", "world")
+	require.NoError(t, err)
+	require.Equal(t, `+OK\r\n`, string(rsp))
+
+	v, err := store.Get("hello")
+	require.NoError(t, err)
+	require.Equal(t, "world", v)
+}
+
 func TestStart_GracefulShutdown(t *testing.T) {
 	logger := log.New(os.Stdout, "[server] ", 0)
-	s := server.NewServer(logger, "localhost", 0)
+	s := server.NewServer(logger, "localhost", 0, storage.NewInMemory())
 
 	ctx := context.Background()
 

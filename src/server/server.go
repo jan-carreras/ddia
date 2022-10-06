@@ -17,6 +17,11 @@ const (
 	responseOK    = `+OK\r\n`
 )
 
+type Storage interface {
+	Get(key string) (string, error)
+	Set(key, value string) error
+}
+
 type Server struct {
 	logger   logger.Logger
 	host     string
@@ -26,11 +31,18 @@ type Server struct {
 	// quit signals if we want to keep listening for new incoming requests or not
 	quit chan interface{}
 	// wg is used for the Listen go routine, and for the goroutines processing each request
-	wg sync.WaitGroup
+	wg      sync.WaitGroup
+	storage Storage
 }
 
-func NewServer(logger logger.Logger, host string, port int) *Server {
-	return &Server{logger: logger, host: host, port: port, quit: make(chan interface{})}
+func NewServer(logger logger.Logger, host string, port int, storage Storage) *Server {
+	return &Server{
+		logger:  logger,
+		host:    host,
+		port:    port,
+		quit:    make(chan interface{}),
+		storage: storage,
+	}
 }
 
 func (s *Server) Start(ctx context.Context) error {
@@ -97,6 +109,7 @@ func (s *Server) Addr() string {
 	return s.addr
 }
 
+// TODO: We should return error responses if something fails
 func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 	defer func() {
 		if err := conn.Close(); err != nil {
@@ -111,36 +124,92 @@ func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 
 	s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
 
+	cmd, err := s.readCommand(conn)
+	if err != nil {
+		return fmt.Errorf("readCommand: %w", err)
+	}
+
+	if err := s.processCommand(conn, cmd); err != nil {
+		return fmt.Errorf("processCommand: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Server) readCommand(conn net.Conn) ([]string, error) {
 	reader, operation, err := resp.PeakOperation(conn)
 	if err != nil {
-		return fmt.Errorf("unable to peak operation: %w", err)
+		return nil, fmt.Errorf("unable to peak operation: %w", err)
 	}
 
 	s.logger.Printf("parsing operation: %q\n", string(operation))
 	switch string(operation) {
 	case `*`:
-		if err := s.parseBulkString(reader); err != nil {
-			return fmt.Errorf("parseBulkString: %w", err)
+		cmd, err := s.parseBulkString(reader)
+		if err != nil {
+			return nil, fmt.Errorf("parseBulkString: %w", err)
 		}
-	default:
-		return errors.New(fmt.Sprintf("unknown opertion type: %q", operation))
-	}
 
-	if _, err := conn.Write([]byte(responseOK)); err != nil {
-		s.logger.Printf("unable to write")
+		return cmd, nil
+	default:
+		return nil, errors.New(fmt.Sprintf("unknown opertion type: %q", operation))
 	}
-	return nil
 }
 
-func (s *Server) parseBulkString(conn io.Reader) error {
-	s.logger.Print("about to start parsing")
+func (s *Server) parseBulkString(conn io.Reader) ([]string, error) {
+	s.logger.Print("stargint to parse")
 	b := resp.BulkStr{}
 
 	if _, err := b.ReadFrom(conn); err != nil {
-		return err
+		return nil, err
 	}
 
-	fmt.Println("Command sent", b.String())
+	s.logger.Printf("command sent: %s\n", b.Strings())
+
+	return b.Strings(), nil
+}
+
+func (s *Server) processCommand(conn net.Conn, cmd []string) error {
+	if len(cmd) == 0 {
+		return errors.New("invalid command: length 0")
+	}
+
+	switch verb := cmd[0]; verb {
+	case "GET":
+		if len(cmd) != 2 {
+			return fmt.Errorf("get command must have 2 parts, having %d instead", len(cmd))
+		}
+
+		// TODO: Understand which can of response should we return
+		// 	It's unclear to me which data-type should I return:
+		//  	Simple Strings or Bulk Strings?
+		_, err := s.storage.Get(cmd[1])
+		if err != nil {
+			return fmt.Errorf("storage.Get: %w", err)
+		}
+
+		if _, err := conn.Write([]byte(responseOK)); err != nil {
+			s.logger.Printf("unable to write")
+		}
+
+	case "SET":
+		if len(cmd) != 3 {
+			return fmt.Errorf("set command must have 3 parts, having %d instead", len(cmd))
+		}
+		err := s.storage.Set(cmd[1], cmd[2])
+		if err != nil {
+			return fmt.Errorf("storage.Set: %w", err)
+		}
+
+		if _, err := conn.Write([]byte(responseOK)); err != nil {
+			s.logger.Printf("unable to write")
+		}
+
+		return nil
+
+	default:
+		return fmt.Errorf("invalid command %q", verb)
+	}
 
 	return nil
 }
