@@ -46,8 +46,9 @@ func (c *Client) Set(key, value string) ([]byte, error) {
 	} else {
 		return rsp, nil
 	}
-
 }
+
+// TODO: Implement Get
 
 func (c *Client) connect() (net.Conn, error) {
 	c.logger.Printf("connecting to %q...", c.addr)
