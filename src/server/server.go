@@ -178,6 +178,7 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 	switch verb := cmd[0]; strings.ToUpper(verb) {
 	case "GET":
 		if len(cmd) != 2 {
+			// TODO: This should be a network error, not an error on the application
 			return fmt.Errorf("get command must have 2 parts, having %d instead", len(cmd))
 		}
 
@@ -195,6 +196,7 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 
 	case "SET":
 		if len(cmd) != 3 {
+			// TODO: This should be a network error, not an error on the application
 			return fmt.Errorf("set command must have 3 parts, having %d instead", len(cmd))
 		}
 		err := s.storage.Set(cmd[1], cmd[2])
