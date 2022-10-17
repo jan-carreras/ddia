@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strings"
 	"sync"
 	"time"
 )
@@ -174,7 +175,7 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 		return errors.New("invalid command: length 0")
 	}
 
-	switch verb := cmd[0]; verb {
+	switch verb := cmd[0]; strings.ToUpper(verb) {
 	case "GET":
 		if len(cmd) != 2 {
 			return fmt.Errorf("get command must have 2 parts, having %d instead", len(cmd))
