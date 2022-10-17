@@ -6,6 +6,7 @@ Designing Data-Intensive Applications.
 ## TODO
 
 * [x] Gracefully shutdown of the server
+* [ ] Do not close the connection on each command
 * [ ] Be able to define read/write timeouts on the server side to prevent DoS
 * [ ] Store values in-memory in a key-value store (map + mutexes)
 * [ ] Benchmark the key value store and compare it with Redis
