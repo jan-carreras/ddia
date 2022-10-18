@@ -1,7 +1,6 @@
 package resp
 
 import (
-	"errors"
 	"fmt"
 	"io"
 )
@@ -25,11 +24,13 @@ func (s *SimpleString) ReadFrom(r io.Reader) (readCount int64, err error) {
 		return readCount, err
 	}
 
-	c, err := s.readFrom(r)
+	c, str, err := readFrom(r)
 	readCount += c
 	if err != nil {
 		return readCount, fmt.Errorf("readFrom: %w", err)
 	}
+
+	s.string = str
 
 	return readCount, nil
 }
@@ -52,42 +53,4 @@ func (s *SimpleString) String() string {
 // Bytes returns the String representation encoded in []bytes
 func (s *SimpleString) Bytes() []byte {
 	return []byte(s.string)
-}
-
-// ignoreDelimiterCharacters ignores the last two characters if they are \r\n or fails
-func ignoreDelimiterCharacters(s string) (string, error) {
-	if l := len(s); l < 2 {
-		return "", fmt.Errorf("invalid string lenght")
-	} else if s[l-2] != '\r' || s[l-1] != '\n' {
-		return "", fmt.Errorf("unexpcted end")
-	} else {
-		s = s[:l-2] // Ignore the last two characters
-	}
-
-	return s, nil
-}
-
-func (s *SimpleString) readFrom(r io.Reader) (readCount int64, err error) {
-	buf := make([]byte, readBufferSize)
-	for {
-		c, err := r.Read(buf)
-		readCount += int64(c)
-
-		if errors.Is(err, io.EOF) || c == 0 {
-			break
-		}
-
-		if err != nil {
-			return readCount, fmt.Errorf("unable to read: %w", err)
-		}
-
-		s.string += string(buf[:c])
-	}
-
-	s.string, err = ignoreDelimiterCharacters(s.string)
-	if err != nil {
-		return readCount, fmt.Errorf("ignoreDelimiterCharacters: %w", err)
-	}
-
-	return readCount, nil
 }

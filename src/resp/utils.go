@@ -121,3 +121,42 @@ func checkOperation(r io.Reader, expectedOperation byte) error {
 
 	return nil
 }
+
+// ignoreDelimiterCharacters ignores the last two characters if they are \r\n or fails
+func ignoreDelimiterCharacters(s string) (string, error) {
+	if l := len(s); l < 2 {
+		return "", fmt.Errorf("invalid string lenght")
+	} else if s[l-2] != '\r' || s[l-1] != '\n' {
+		return "", fmt.Errorf("unexpcted end")
+	} else {
+		s = s[:l-2] // Ignore the last two characters
+	}
+
+	return s, nil
+}
+
+// readFrom reads all the content of the reader and returns an string
+func readFrom(r io.Reader) (readCount int64, s string, err error) {
+	buf := make([]byte, readBufferSize)
+	for {
+		c, err := r.Read(buf)
+		readCount += int64(c)
+
+		if errors.Is(err, io.EOF) || c == 0 {
+			break
+		}
+
+		if err != nil {
+			return readCount, s, fmt.Errorf("unable to read: %w", err)
+		}
+
+		s += string(buf[:c])
+	}
+
+	s, err = ignoreDelimiterCharacters(s)
+	if err != nil {
+		return readCount, "", fmt.Errorf("ignoreDelimiterCharacters: %w", err)
+	}
+
+	return readCount, s, nil
+}

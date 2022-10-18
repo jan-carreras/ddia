@@ -1,7 +1,6 @@
 package resp
 
 import (
-	"errors"
 	"fmt"
 	"io"
 )
@@ -23,36 +22,13 @@ func (s *Error) ReadFrom(r io.Reader) (readCount int64, err error) {
 		return readCount, err
 	}
 
-	c, err := s.readFrom(r)
+	c, str, err := readFrom(r)
 	readCount += c
 	if err != nil {
 		return readCount, fmt.Errorf("readFrom: %w", err)
 	}
 
-	return readCount, nil
-}
-
-func (s *Error) readFrom(r io.Reader) (readCount int64, err error) {
-	buf := make([]byte, readBufferSize)
-	for {
-		c, err := r.Read(buf)
-		readCount += int64(c)
-
-		if errors.Is(err, io.EOF) || c == 0 {
-			break
-		}
-
-		if err != nil {
-			return readCount, fmt.Errorf("unable to read: %w", err)
-		}
-
-		s.string += string(buf[:c])
-	}
-
-	s.string, err = ignoreDelimiterCharacters(s.string)
-	if err != nil {
-		return readCount, fmt.Errorf("ignoreDelimiterCharacters: %w", err)
-	}
+	s.string = str
 
 	return readCount, nil
 }
