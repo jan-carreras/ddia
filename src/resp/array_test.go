@@ -42,11 +42,6 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 			expectErrContains: "unable to read operator",
 		},
 		{
-			name:              "element of array is not string",
-			input:             "*1\r\n:5\r\n",
-			expectErrContains: "unknown operator",
-		},
-		{
 			name:              "element is string but malformed",
 			input:             "*1\r\n$5\r\n",
 			expectErrContains: "",

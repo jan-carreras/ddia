@@ -3,7 +3,7 @@ package resp
 const (
 	SimpleStringOp = '+'
 	ErrorOp        = '-'
-	IntegersOp     = ':'
+	IntegerOp      = ':'
 	BulkStringOp   = '$'
 	ArrayOp        = '*'
 )

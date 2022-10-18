@@ -151,6 +151,11 @@ func readFrom(r io.Reader) (readCount int64, s string, err error) {
 		}
 
 		s += string(buf[:c])
+
+		// We've read all there was to read, we can stop looking for data
+		if c < readBufferSize {
+			break
+		}
 	}
 
 	s, err = ignoreDelimiterCharacters(s)

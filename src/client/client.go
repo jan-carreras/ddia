@@ -103,6 +103,8 @@ func (c *Client) response(reader io.Reader) ([]byte, error) {
 		return nil, fmt.Errorf("PeakOperation: %w", err)
 	}
 
+	c.logger.Println("operation:", string(operation))
+
 	switch operation {
 	case resp.SimpleStringOp:
 		s := resp.SimpleString{}
@@ -112,6 +114,14 @@ func (c *Client) response(reader io.Reader) ([]byte, error) {
 		}
 
 		return []byte(s.String()), nil
+	case resp.BulkStringOp:
+		bs := resp.Str{}
+		_, err := bs.ReadFrom(reader)
+		if err != nil {
+			return nil, fmt.Errorf("ReadFrom: %w", err)
+		}
+
+		return []byte(bs.String()), nil
 	}
 
 	return nil, fmt.Errorf("unknown operation: %c", operation)

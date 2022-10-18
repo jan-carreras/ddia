@@ -8,9 +8,10 @@ import (
 
 var _ dataType = (*Array)(nil)
 
-// Array are used in order to represent a single binary-safe string up to 512 MB in length.
-// They start with $ and
-// Example: "$5\r\nhello\r\n"
+// Array : Clients send commands to the Redis server using RESP Arrays. Similarly,
+// certain Redis commands, that return collections of elements to the client, use
+// RESP Arrays as their replies
+// Example: "*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
 type Array struct {
 	strings []string
 }
@@ -85,6 +86,14 @@ func (b *Array) readFrom(r io.Reader) (int64, error) {
 			}
 
 			b.strings = append(b.strings, s.String())
+		case IntegerOp:
+			i := Integer{}
+			_, err := i.ReadFrom(r)
+			if err != nil {
+				return 0, fmt.Errorf("int.ReadFrom: %v", err)
+			}
+
+			b.strings = append(b.strings, i.String())
 		default:
 			return 0, fmt.Errorf("unknown operator %q", string(operation))
 		}
