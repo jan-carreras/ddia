@@ -3,9 +3,13 @@ package resp
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 )
+
+var ErrParsingError = errors.New("parsing error")
+var ErrEncodingError = errors.New("encoding error")
 
 // dataType is the interface to be implemented by each datatype on RESP
 type dataType interface {
