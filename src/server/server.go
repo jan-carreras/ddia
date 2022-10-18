@@ -15,7 +15,6 @@ import (
 
 const (
 	serverNetwork = "tcp"
-	responseOK    = "+OK\r\n"
 )
 
 var ErrNotFound = errors.New("not found")
