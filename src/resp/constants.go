@@ -1,9 +1,11 @@
 package resp
 
 const (
-	simpleString = '+'
-	errors       = '-'
-	integers     = ':'
-	bulkStringOp = '$'
-	array        = '*'
+	simpleStringOp = '+'
+	errorOp        = '-'
+	integersOp     = ':'
+	bulkStringOp   = '$'
+	arrayOp        = '*'
 )
+
+const readBufferSize = 512 // bytes
