@@ -10,6 +10,10 @@ type SimpleString struct {
 	string string
 }
 
+func NewSimpleString(string string) *SimpleString {
+	return &SimpleString{string: string}
+}
+
 // ReadFrom reads from the Reader and loads the SimpleString object
 // Example: "+OK\r\n"
 func (s *SimpleString) ReadFrom(r io.Reader) (readCount int64, err error) {
@@ -69,7 +73,12 @@ func (s *SimpleString) ignoreDelimiterCharacters() error {
 
 // WriteTo writes the information on SimpleString and dumps it into the Writer
 func (s *SimpleString) WriteTo(w io.Writer) (int64, error) {
-	return 0, nil
+	n, err := fmt.Fprintf(w, "%c%s\r\n", byte(SimpleStringOp), s.string)
+	if err != nil {
+		return int64(n), err
+	}
+
+	return int64(n), nil
 }
 
 // String returns the String representation of the object

@@ -1,6 +1,7 @@
 package resp_test
 
 import (
+	"bytes"
 	"ddia/src/resp"
 	"github.com/stretchr/testify/require"
 	"strings"
@@ -89,4 +90,17 @@ func TestSimpleString_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, len(input), c)
 	require.Equal(t, payload, s.String())
+}
+
+func TestSimpleString_WriteTo(t *testing.T) {
+	input := "OK"
+	expected := "+OK\r\n"
+	s := resp.NewSimpleString(input)
+
+	buf := &bytes.Buffer{}
+	c, err := s.WriteTo(buf)
+	require.NoError(t, err)
+	require.EqualValues(t, len(expected), c)
+
+	require.Equal(t, expected, buf.String())
 }
