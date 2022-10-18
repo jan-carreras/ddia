@@ -25,7 +25,7 @@ func TestStart(t *testing.T) {
 
 	rsp, err := cli.Set("hello", "world")
 	require.NoError(t, err)
-	require.Equal(t, `+OK\r\n`, string(rsp))
+	require.Equal(t, `OK`, string(rsp))
 }
 
 func TestServer_Set(t *testing.T) {
@@ -41,7 +41,7 @@ func TestServer_Set(t *testing.T) {
 
 	rsp, err := cli.Set("hello", "world")
 	require.NoError(t, err)
-	require.Equal(t, `+OK\r\n`, string(rsp))
+	require.Equal(t, "OK", string(rsp))
 
 	v, err := store.Get("hello")
 	require.NoError(t, err)

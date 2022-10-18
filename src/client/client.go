@@ -104,14 +104,14 @@ func (c *Client) response(reader io.Reader) ([]byte, error) {
 	}
 
 	switch operation {
-	case '+':
-		s := resp.Str{}
+	case resp.SimpleStringOp:
+		s := resp.SimpleString{}
 		_, err := s.ReadFrom(reader)
 		if err != nil {
 			return nil, fmt.Errorf("ReadFrom: %w", err)
 		}
 
-		return s.Bytes(), nil
+		return []byte(s.String()), nil
 	}
 
 	return nil, fmt.Errorf("unknown operation: %c", operation)
@@ -119,7 +119,7 @@ func (c *Client) response(reader io.Reader) ([]byte, error) {
 
 // encodeBulkStrings encodes a slice of strings into a RESP Array consisting only Bulk Strings
 func encodeBulkStrings(cmd []string) ([]byte, error) {
-	bulkStr := resp.NewBulkStr(cmd)
+	bulkStr := resp.NewArray(cmd)
 	buf := &bytes.Buffer{}
 	_, err := bulkStr.WriteTo(buf)
 	if err != nil {

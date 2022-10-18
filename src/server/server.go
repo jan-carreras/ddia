@@ -15,7 +15,7 @@ import (
 
 const (
 	serverNetwork = "tcp"
-	responseOK    = `+OK\r\n`
+	responseOK    = "+OK\r\n"
 )
 
 var ErrNotFound = errors.New("not found")
@@ -146,8 +146,8 @@ func (s *Server) readCommand(conn net.Conn) ([]string, error) {
 	}
 
 	s.logger.Printf("parsing operation: %q\n", string(operation))
-	switch string(operation) {
-	case `*`:
+	switch operation {
+	case resp.ArrayOp:
 		cmd, err := s.parseBulkString(reader)
 		if err != nil {
 			return nil, fmt.Errorf("parseBulkString: %w", err)
@@ -160,8 +160,8 @@ func (s *Server) readCommand(conn net.Conn) ([]string, error) {
 }
 
 func (s *Server) parseBulkString(conn io.Reader) ([]string, error) {
-	s.logger.Print("stargint to parse")
-	b := resp.BulkStr{}
+	s.logger.Print("starting to parse")
+	b := resp.Array{}
 
 	if _, err := b.ReadFrom(conn); err != nil {
 		return nil, err
@@ -178,7 +178,7 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 	}
 
 	switch verb := cmd[0]; strings.ToUpper(verb) {
-	case "GET":
+	case resp.Get:
 		if len(cmd) != 2 {
 			// TODO: This should be a network error, not an error on the application
 			return fmt.Errorf("get command must have 2 parts, having %d instead", len(cmd))
@@ -196,7 +196,7 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 			s.logger.Printf("unable to write")
 		}
 
-	case "SET":
+	case resp.Set:
 		if len(cmd) != 3 {
 			// TODO: This should be a network error, not an error on the application
 			return fmt.Errorf("set command must have 3 parts, having %d instead", len(cmd))

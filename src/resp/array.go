@@ -6,37 +6,40 @@ import (
 	"strings"
 )
 
-type BulkStr struct {
+// Array are used in order to represent a single binary-safe string up to 512 MB in length.
+// They start with $ and
+// Example: "$5\r\nhello\r\n"
+type Array struct {
 	strings []string
 }
 
-func NewBulkStr(strings []string) BulkStr {
-	return BulkStr{strings: strings}
+func NewArray(strings []string) Array {
+	return Array{strings: strings}
 }
 
-func (b *BulkStr) Bytes() []byte { return []byte(b.String()) }
+func (b *Array) Bytes() []byte { return []byte(b.String()) }
 
-func (b *BulkStr) String() string { return strings.Join(b.strings, " ") }
+func (b *Array) String() string { return strings.Join(b.strings, " ") }
 
-func (b *BulkStr) Strings() []string {
+func (b *Array) Strings() []string {
 	return b.strings
 }
 
-func (b *BulkStr) WriteTo(w io.Writer) (int64, error) {
+func (b *Array) WriteTo(w io.Writer) (int64, error) {
 	length := len(b.strings)
 	if length == 0 {
 		length = -1
 	}
 
 	count := 0
-	n, err := fmt.Fprintf(w, "*%d\r\n", length)
+	n, err := fmt.Fprintf(w, "%c%d\r\n", byte(ArrayOp), length)
 	if err != nil {
 		return 0, fmt.Errorf("unable to start message: %w", err)
 	}
 	count += n
 
 	for _, s := range b.strings {
-		n, err := fmt.Fprintf(w, "$%d\r\n%s\r\n", len(s), s)
+		n, err := fmt.Fprintf(w, "%c%d\r\n%s\r\n", byte(BulkStringOp), len(s), s)
 		if err != nil {
 			return 0, fmt.Errorf("unable to write a word in message: %w", err)
 		}
@@ -46,7 +49,7 @@ func (b *BulkStr) WriteTo(w io.Writer) (int64, error) {
 	return int64(count), nil
 }
 
-func (b *BulkStr) ReadFrom(r io.Reader) (int64, error) {
+func (b *Array) ReadFrom(r io.Reader) (int64, error) {
 	n, err := b.readFrom(r)
 	if err != nil {
 		return 0, fmt.Errorf("%w: %v", ErrParsingError, err)
@@ -55,8 +58,8 @@ func (b *BulkStr) ReadFrom(r io.Reader) (int64, error) {
 	return n, nil
 }
 
-func (b *BulkStr) readFrom(r io.Reader) (int64, error) {
-	if err := checkOperation(r, array); err != nil {
+func (b *Array) readFrom(r io.Reader) (int64, error) {
+	if err := checkOperation(r, ArrayOp); err != nil {
 		return 0, fmt.Errorf("checkOperation: %w", err)
 	}
 
@@ -72,7 +75,7 @@ func (b *BulkStr) readFrom(r io.Reader) (int64, error) {
 		}
 
 		switch operation {
-		case bulkStringOp:
+		case BulkStringOp:
 			s := Str{}
 			_, err := s.ReadFrom(r)
 			if err != nil {

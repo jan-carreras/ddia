@@ -23,11 +23,11 @@ func TestClient_Set(t *testing.T) {
 
 	rsp, err := c.Set("hello", "world")
 	require.NoError(t, err)
-	require.Equal(t, `+OK\r\n`, string(rsp))
+	require.Equal(t, "OK", string(rsp))
 
 	rsp, err = c.Set("chao", "universe")
 	require.NoError(t, err)
-	require.Equal(t, `+OK\r\n`, string(rsp))
+	require.Equal(t, "OK", string(rsp))
 }
 
 func TestClient_Get(t *testing.T) {
@@ -48,5 +48,5 @@ func TestClient_Get(t *testing.T) {
 	rsp, err := c.Get(k)
 	require.NoError(t, err)
 	// TODO: This is wrong. We want a proper response from the server that contains "world"
-	require.Equal(t, `+OK\r\n`, string(rsp))
+	require.Equal(t, "OK", string(rsp))
 }

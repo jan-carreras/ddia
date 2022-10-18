@@ -10,7 +10,7 @@ import (
 )
 
 func TestBulkStr_ReadFrom(t *testing.T) {
-	bulk := resp.BulkStr{}
+	bulk := resp.Array{}
 
 	input := strings.NewReader("*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n")
 	_, err := bulk.ReadFrom(input)
@@ -53,7 +53,7 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 		},
 	}
 
-	bulk := resp.BulkStr{}
+	bulk := resp.Array{}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -67,7 +67,7 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 }
 
 func TestBulkStr_StringAndBytes(t *testing.T) {
-	bulk := resp.BulkStr{}
+	bulk := resp.Array{}
 
 	_, err := bulk.ReadFrom(strings.NewReader("*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"))
 	require.NoError(t, err)
@@ -77,7 +77,7 @@ func TestBulkStr_StringAndBytes(t *testing.T) {
 }
 
 func TestBulkStr_WriteTo(t *testing.T) {
-	bulk := resp.BulkStr{}
+	bulk := resp.Array{}
 
 	text := "*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
 

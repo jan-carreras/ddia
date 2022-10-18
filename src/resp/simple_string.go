@@ -13,7 +13,7 @@ type SimpleString struct {
 // ReadFrom reads from the Reader and loads the SimpleString object
 // Example: "+OK\r\n"
 func (s *SimpleString) ReadFrom(r io.Reader) (readCount int64, err error) {
-	err = checkOperation(r, simpleStringOp)
+	err = checkOperation(r, SimpleStringOp)
 	readCount += 1 // Read the first byte
 	if err != nil {
 		return readCount, err
@@ -57,6 +57,8 @@ func (s *SimpleString) ignoreDelimiterCharacters() error {
 	if l := len(s.string); l < 2 {
 		return fmt.Errorf("invalid string lenght")
 	} else if s.string[l-2] != '\r' || s.string[l-1] != '\n' {
+		fmt.Printf("%q\n\n", s.string)
+		fmt.Printf(s.string)
 		return fmt.Errorf("unexpcted end")
 	} else {
 		s.string = s.string[:l-2] // Ignore the last two characters

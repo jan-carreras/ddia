@@ -13,7 +13,7 @@ func (b *Str) Bytes() []byte  { return []byte(b.s) }
 func (b *Str) String() string { return b.s }
 
 func (b *Str) WriteTo(w io.Writer) (int64, error) {
-	n, err := fmt.Fprintf(w, "%c%d\r\n%s\r\n", bulkStringOp, len(b.s), b.s)
+	n, err := fmt.Fprintf(w, "%c%d\r\n%s\r\n", byte(BulkStringOp), len(b.s), b.s)
 	if err != nil {
 		return 0, fmt.Errorf("%w: writing string operator: %v", ErrEncodingError, err)
 	}
@@ -24,27 +24,30 @@ func (b *Str) WriteTo(w io.Writer) (int64, error) {
 func (b *Str) ReadFrom(r io.Reader) (int64, error) {
 	n, err := b.readFrom(r)
 	if err != nil {
-		return 0, fmt.Errorf("%w: %v", ErrParsingError, err)
+		return n, fmt.Errorf("%w: %v", ErrParsingError, err)
 	}
 
 	return n, nil
 }
 
 func (b *Str) readFrom(r io.Reader) (int64, error) {
-	if err := checkOperation(r, bulkStringOp); err != nil {
-		return 0, fmt.Errorf("checkOperation: %w", err)
+	var readCount int64
+
+	if err := checkOperation(r, BulkStringOp); err != nil {
+		return readCount, fmt.Errorf("checkOperation: %w", err)
 	}
 
 	strLen, err := readLength(r)
 	if err != nil {
-		return 0, fmt.Errorf("readLength: %v", err)
+		return readCount, fmt.Errorf("readLength: %v", err)
 	}
 
 	buf := make([]byte, strLen)
 
 	read, err := r.Read(buf)
+	readCount += int64(read)
 	if err != nil {
-		return 0, fmt.Errorf("r.Read(len=%d): %v", strLen, err)
+		return readCount, fmt.Errorf("r.Read(len=%d): %v", strLen, err)
 	}
 
 	if read != strLen {
@@ -55,7 +58,7 @@ func (b *Str) readFrom(r io.Reader) (int64, error) {
 
 	// Ignore \r\n
 	if err := ignoreDelimiters(r); err != nil {
-		return 0, err
+		return readCount, err
 	}
 
 	return int64(len(b.s)), nil
