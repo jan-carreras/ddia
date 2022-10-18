@@ -186,12 +186,19 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 		// TODO: Understand which can of response should we return
 		// 	It's unclear to me which data-type should I return:
 		//  	Simple Strings or Bulk Strings?
-		_, err := s.storage.Get(cmd[1])
+		val, err := s.storage.Get(cmd[1])
+		if errors.Is(err, ErrNotFound) {
+			ok := resp.NewSimpleString("")
+			if _, err := ok.WriteTo(conn); err != nil {
+				s.logger.Printf("unable to write")
+			}
+		}
+
 		if err != nil {
 			return fmt.Errorf("storage.Get: %w", err)
 		}
 
-		ok := resp.NewSimpleString("OK")
+		ok := resp.NewSimpleString(val)
 		if _, err := ok.WriteTo(conn); err != nil {
 			s.logger.Printf("unable to write")
 		}
