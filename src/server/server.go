@@ -192,7 +192,8 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 			return fmt.Errorf("storage.Get: %w", err)
 		}
 
-		if _, err := conn.Write([]byte(responseOK)); err != nil {
+		ok := resp.NewSimpleString("OK")
+		if _, err := ok.WriteTo(conn); err != nil {
 			s.logger.Printf("unable to write")
 		}
 
@@ -206,7 +207,8 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 			return fmt.Errorf("storage.Set: %w", err)
 		}
 
-		if _, err := conn.Write([]byte(responseOK)); err != nil {
+		ok := resp.NewSimpleString("OK")
+		if _, err := ok.WriteTo(conn); err != nil {
 			s.logger.Printf("unable to write")
 		}
 

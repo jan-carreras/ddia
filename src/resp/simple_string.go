@@ -85,3 +85,8 @@ func (s *SimpleString) WriteTo(w io.Writer) (int64, error) {
 func (s *SimpleString) String() string {
 	return s.string
 }
+
+// Bytes returns the String representation encoded in []bytes
+func (s *SimpleString) Bytes() []byte {
+	return []byte(s.string)
+}
