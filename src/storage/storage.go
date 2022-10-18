@@ -1,11 +1,9 @@
 package storage
 
 import (
-	"errors"
+	"ddia/src/server"
 	"sync"
 )
-
-var ErrNotFound = errors.New("not found")
 
 type InMemory struct {
 	records    map[string]string
@@ -32,7 +30,7 @@ func (m *InMemory) Get(key string) (string, error) {
 	defer m.recordsMux.RUnlock()
 	val, ok := m.records[key]
 	if !ok {
-		return "", ErrNotFound
+		return "", server.ErrNotFound
 	}
 
 	return val, nil

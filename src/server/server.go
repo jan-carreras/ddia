@@ -18,6 +18,8 @@ const (
 	responseOK    = `+OK\r\n`
 )
 
+var ErrNotFound = errors.New("not found")
+
 type Storage interface {
 	Get(key string) (string, error)
 	Set(key, value string) error
