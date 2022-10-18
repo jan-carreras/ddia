@@ -1,6 +1,7 @@
 package storage_test
 
 import (
+	"ddia/src/server"
 	"ddia/src/storage"
 	"github.com/stretchr/testify/require"
 	"sync"
@@ -75,6 +76,6 @@ func TestInMemory_Get_NonExisting(t *testing.T) {
 	v, err := store.Get("non-existing-key")
 	require.Empty(t, v)
 
-	require.ErrorIs(t, err, storage.ErrNotFound)
+	require.ErrorIs(t, err, server.ErrNotFound)
 
 }
