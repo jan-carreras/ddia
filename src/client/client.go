@@ -95,15 +95,26 @@ func (c *Client) send(socket net.Conn, msg []byte) error {
 }
 
 // response reads from the TCP connection
-func (c *Client) response(socket net.Conn) ([]byte, error) {
+func (c *Client) response(reader io.Reader) ([]byte, error) {
 	c.logger.Printf("waiting for response...")
 
-	buf, err := io.ReadAll(socket)
-	if err != nil && err != io.EOF {
-		return nil, fmt.Errorf(`unable to read until delimiter \n: %w`, err)
+	reader, operation, err := resp.PeakOperation(reader)
+	if err != nil {
+		return nil, fmt.Errorf("PeakOperation: %w", err)
 	}
-	c.logger.Printf("got response")
-	return buf, nil
+
+	switch operation {
+	case '+':
+		s := resp.Str{}
+		_, err := s.ReadFrom(reader)
+		if err != nil {
+			return nil, fmt.Errorf("ReadFrom: %w", err)
+		}
+
+		return s.Bytes(), nil
+	}
+
+	return nil, fmt.Errorf("unknown operation: %c", operation)
 }
 
 // encodeBulkStrings encodes a slice of strings into a RESP Array consisting only Bulk Strings
