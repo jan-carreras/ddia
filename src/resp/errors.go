@@ -49,24 +49,12 @@ func (s *Error) readFrom(r io.Reader) (readCount int64, err error) {
 		s.string += string(buf[:c])
 	}
 
-	if err := s.ignoreDelimiterCharacters(); err != nil {
+	s.string, err = ignoreDelimiterCharacters(s.string)
+	if err != nil {
 		return readCount, fmt.Errorf("ignoreDelimiterCharacters: %w", err)
 	}
 
 	return readCount, nil
-}
-
-// ignoreDelimiterCharacters ignores the last two characters if they are \r\n or fails
-func (s *Error) ignoreDelimiterCharacters() error {
-	if l := len(s.string); l < 2 {
-		return fmt.Errorf("invalid string lenght")
-	} else if s.string[l-2] != '\r' || s.string[l-1] != '\n' {
-		return fmt.Errorf("unexpcted end")
-	} else {
-		s.string = s.string[:l-2] // Ignore the last two characters
-	}
-
-	return nil
 }
 
 // WriteTo writes the information on Error and dumps it into the Writer
