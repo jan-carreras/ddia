@@ -5,6 +5,8 @@ import (
 	"io"
 )
 
+var _ dataType = (*Str)(nil)
+
 type Str struct {
 	s string
 }

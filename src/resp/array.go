@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var _ dataType = (*Array)(nil)
+
 // Array are used in order to represent a single binary-safe string up to 512 MB in length.
 // They start with $ and
 // Example: "$5\r\nhello\r\n"

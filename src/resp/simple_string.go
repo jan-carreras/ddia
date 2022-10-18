@@ -6,6 +6,8 @@ import (
 	"io"
 )
 
+var _ dataType = (*SimpleString)(nil)
+
 type SimpleString struct {
 	string string
 }

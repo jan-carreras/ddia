@@ -7,6 +7,13 @@ import (
 	"io"
 )
 
+// dataType is the interface to be implemented by each datatype on RESP
+type dataType interface {
+	io.WriterTo
+	io.ReaderFrom
+	fmt.Stringer
+}
+
 func readLength(r io.Reader) (int, error) {
 	var num byte
 	arrayLength := 0
