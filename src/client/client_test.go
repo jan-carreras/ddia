@@ -52,3 +52,24 @@ func TestClient_Get(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "world", string(rsp))
 }
+
+func TestClient_Ping(t *testing.T) {
+	store := storage.NewInMemory()
+	logger := log.New(os.Stdout, "[server] ", 0)
+	handlers := server.NewHandlers(logger, store)
+	s := server.NewServer(logger, "localhost", 0, handlers)
+
+	err := s.Start(context.Background())
+	require.NoError(t, err)
+
+	logger = log.New(os.Stdout, "[client] ", 0)
+	c := client.NewClient(logger, s.Addr())
+
+	rsp, err := c.Ping("")
+	require.NoError(t, err)
+	require.Equal(t, "PONG", string(rsp))
+
+	rsp, err = c.Ping("hello world")
+	require.NoError(t, err)
+	require.Equal(t, "hello world", string(rsp))
+}

@@ -51,6 +51,27 @@ func TestServer_Set(t *testing.T) {
 	require.Equal(t, "world", v)
 }
 
+func TestServer_Ping(t *testing.T) {
+	store := storage.NewInMemory()
+
+	logger := log.New(os.Stdout, "[server] ", 0)
+	handlers := server.NewHandlers(logger, store)
+	s := server.NewServer(logger, "localhost", 0, handlers)
+
+	require.NoError(t, s.Start(context.Background()))
+
+	logger = log.New(os.Stdout, "[client] ", 0)
+	cli := client.NewClient(logger, s.Addr())
+
+	rsp, err := cli.Ping("")
+	require.NoError(t, err)
+	require.Equal(t, "PONG", string(rsp))
+
+	rsp, err = cli.Ping("hello world")
+	require.NoError(t, err)
+	require.Equal(t, "hello world", string(rsp))
+}
+
 func TestStart_GracefulShutdown(t *testing.T) {
 	logger := log.New(os.Stdout, "[server] ", 0)
 	store := storage.NewInMemory()

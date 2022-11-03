@@ -11,6 +11,7 @@ const (
 const readBufferSize = 512 // bytes
 
 const (
-	Get = "GET"
-	Set = "SET"
+	Ping = "PING"
+	Get  = "GET"
+	Set  = "SET"
 )

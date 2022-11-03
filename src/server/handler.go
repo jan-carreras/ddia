@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 )
 
 type Handlers struct {
@@ -77,6 +78,24 @@ func (h *Handlers) UnknownCommand(conn net.Conn, verb string) error {
 
 	if _, err := err.WriteTo(conn); err != nil {
 		return fmt.Errorf("unable to write command not found: %w", err)
+	}
+
+	return nil
+}
+
+func (h *Handlers) Ping(conn net.Conn, cmd []string) error {
+	if len(cmd) == 1 {
+		ok := resp.NewSimpleString("PONG")
+		if _, err := ok.WriteTo(conn); err != nil {
+			h.logger.Printf("unable to write: %v", err)
+		}
+
+		return nil
+	}
+
+	ok := resp.NewSimpleString(strings.Join(cmd[1:], " "))
+	if _, err := ok.WriteTo(conn); err != nil {
+		h.logger.Printf("unable to write: %v", err)
 	}
 
 	return nil

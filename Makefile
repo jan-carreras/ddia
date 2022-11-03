@@ -7,3 +7,7 @@ test:
 .PHONY: fmt
 fmt:
 	go fmt ./...
+
+.PHONY: fmt
+redis-server:
+	redis-server --loglevel verbose

@@ -177,6 +177,10 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 	}
 
 	switch verb := cmd[0]; strings.ToUpper(verb) {
+	case resp.Ping:
+		if err := s.handlers.Ping(conn, cmd); err != nil {
+			return fmt.Errorf("handlers.Ping: %w", err)
+		}
 	case resp.Get:
 		if err := s.handlers.Get(conn, cmd); err != nil {
 			return fmt.Errorf("handlers.Get: %w", err)

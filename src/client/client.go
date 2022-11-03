@@ -73,6 +73,35 @@ func (c *Client) Get(key string) ([]byte, error) {
 
 }
 
+func (c *Client) Ping(key string) ([]byte, error) {
+	cmd, err := encodeBulkStrings([]string{"PING"})
+	if len(key) != 0 {
+		cmd, err = encodeBulkStrings([]string{"PING", key})
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to encode PING command: %w", err)
+	}
+
+	socket, err := c.connect()
+	if err != nil {
+		return nil, fmt.Errorf("unable to connecto to remove server: %w", err)
+	}
+	defer func() { _ = socket.Close() }()
+
+	if err := c.send(socket, cmd); err != nil {
+		return nil, fmt.Errorf("send: %w", err)
+	}
+
+	rsp, err := c.response(socket)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read response: %w", err)
+	}
+
+	return rsp, nil
+
+}
+
 func (c *Client) connect() (net.Conn, error) {
 	c.logger.Printf("connecting to %q...", c.addr)
 	conn, err := net.DialTimeout("tcp", c.addr, dialTimeout)
