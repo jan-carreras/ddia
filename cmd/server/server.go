@@ -19,7 +19,9 @@ func main() {
 
 func startServer() error {
 	logger := log.New(os.Stdout, "[server] ", 0)
-	s := server.NewServer(logger, "localhost", 6379, storage.NewInMemory())
+	store := storage.NewInMemory()
+	handlers := server.NewHandlers(logger, store)
+	s := server.NewServer(logger, "localhost", 6379, handlers)
 	err := s.Start(context.Background())
 	return err
 }

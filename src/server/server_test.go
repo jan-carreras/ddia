@@ -14,7 +14,9 @@ import (
 
 func TestStart(t *testing.T) {
 	logger := log.New(os.Stdout, "[server] ", 0)
-	s := server.NewServer(logger, "localhost", 0, storage.NewInMemory())
+	store := storage.NewInMemory()
+	handlers := server.NewHandlers(logger, store)
+	s := server.NewServer(logger, "localhost", 0, handlers)
 
 	require.NoError(t, s.Start(context.Background()))
 
@@ -32,7 +34,8 @@ func TestServer_Set(t *testing.T) {
 	store := storage.NewInMemory()
 
 	logger := log.New(os.Stdout, "[server] ", 0)
-	s := server.NewServer(logger, "localhost", 0, store)
+	handlers := server.NewHandlers(logger, store)
+	s := server.NewServer(logger, "localhost", 0, handlers)
 
 	require.NoError(t, s.Start(context.Background()))
 
@@ -50,7 +53,10 @@ func TestServer_Set(t *testing.T) {
 
 func TestStart_GracefulShutdown(t *testing.T) {
 	logger := log.New(os.Stdout, "[server] ", 0)
-	s := server.NewServer(logger, "localhost", 0, storage.NewInMemory())
+	store := storage.NewInMemory()
+	handlers := server.NewHandlers(logger, store)
+
+	s := server.NewServer(logger, "localhost", 0, handlers)
 
 	ctx := context.Background()
 

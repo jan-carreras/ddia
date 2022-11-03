@@ -33,17 +33,17 @@ type Server struct {
 	// quit signals if we want to keep listening for new incoming requests or not
 	quit chan interface{}
 	// wg is used for the Listen go routine, and for the goroutines processing each request
-	wg      sync.WaitGroup
-	storage Storage
+	wg       sync.WaitGroup
+	handlers *Handlers
 }
 
-func NewServer(logger logger.Logger, host string, port int, storage Storage) *Server {
+func NewServer(logger logger.Logger, host string, port int, handlers *Handlers) *Server {
 	return &Server{
-		logger:  logger,
-		host:    host,
-		port:    port,
-		quit:    make(chan interface{}),
-		storage: storage,
+		logger:   logger,
+		host:     host,
+		port:     port,
+		quit:     make(chan interface{}),
+		handlers: handlers,
 	}
 }
 
@@ -178,50 +178,19 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 
 	switch verb := cmd[0]; strings.ToUpper(verb) {
 	case resp.Get:
-		if len(cmd) != 2 {
-			// TODO: This should be a network error, not an error on the application
-			return fmt.Errorf("get command must have 2 parts, having %d instead", len(cmd))
-		}
-
-		// TODO: Understand which can of response should we return
-		// 	It's unclear to me which data-type should I return:
-		//  	Simple Strings or Bulk Strings?
-		val, err := s.storage.Get(cmd[1])
-		if errors.Is(err, ErrNotFound) {
-			ok := resp.NewSimpleString("")
-			if _, err := ok.WriteTo(conn); err != nil {
-				s.logger.Printf("unable to write")
-			}
-		}
-
-		if err != nil {
-			return fmt.Errorf("storage.Get: %w", err)
-		}
-
-		ok := resp.NewSimpleString(val)
-		if _, err := ok.WriteTo(conn); err != nil {
-			s.logger.Printf("unable to write")
+		if err := s.handlers.Get(conn, cmd); err != nil {
+			return fmt.Errorf("handlers.Get: %w", err)
 		}
 
 	case resp.Set:
-		if len(cmd) != 3 {
-			// TODO: This should be a network error, not an error on the application
-			return fmt.Errorf("set command must have 3 parts, having %d instead", len(cmd))
+		if err := s.handlers.Set(conn, cmd); err != nil {
+			return fmt.Errorf("handlers.Set: %w", err)
 		}
-		err := s.storage.Set(cmd[1], cmd[2])
-		if err != nil {
-			return fmt.Errorf("storage.Set: %w", err)
-		}
-
-		ok := resp.NewSimpleString("OK")
-		if _, err := ok.WriteTo(conn); err != nil {
-			s.logger.Printf("unable to write")
-		}
-
-		return nil
 
 	default:
-		return fmt.Errorf("invalid command %q", verb)
+		if err := s.handlers.UnknownCommand(conn, verb); err != nil {
+			return fmt.Errorf("handlers.UnknownCommand: %w", err)
+		}
 	}
 
 	return nil

@@ -13,7 +13,9 @@ import (
 
 func TestClient_Set(t *testing.T) {
 	logger := log.New(os.Stdout, "[server] ", 0)
-	s := server.NewServer(logger, "localhost", 0, storage.NewInMemory())
+	store := storage.NewInMemory()
+	handlers := server.NewHandlers(logger, store)
+	s := server.NewServer(logger, "localhost", 0, handlers)
 
 	err := s.Start(context.Background())
 	require.NoError(t, err)
@@ -33,7 +35,8 @@ func TestClient_Set(t *testing.T) {
 func TestClient_Get(t *testing.T) {
 	store := storage.NewInMemory()
 	logger := log.New(os.Stdout, "[server] ", 0)
-	s := server.NewServer(logger, "localhost", 0, store)
+	handlers := server.NewHandlers(logger, store)
+	s := server.NewServer(logger, "localhost", 0, handlers)
 
 	err := s.Start(context.Background())
 	require.NoError(t, err)
@@ -47,6 +50,5 @@ func TestClient_Get(t *testing.T) {
 
 	rsp, err := c.Get(k)
 	require.NoError(t, err)
-	// TODO: This is wrong. We want a proper response from the server that contains "world"
-	require.Equal(t, "OK", string(rsp))
+	require.Equal(t, "world", string(rsp))
 }
