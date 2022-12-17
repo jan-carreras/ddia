@@ -201,7 +201,7 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 			return fmt.Errorf("handlers.Del: %v", err)
 		}
 	default:
-		if err := s.handlers.UnknownCommand(conn, verb); err != nil {
+		if err := s.handlers.UnknownCommand(conn, cmd[0]); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)
 		}
 	}
