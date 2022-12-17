@@ -14,7 +14,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	time.Sleep(5 * time.Minute)
+	time.Sleep(5 * time.Minute) // TODO: Actively wait
 }
 
 func startServer() error {
