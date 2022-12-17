@@ -197,7 +197,7 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 		}
 	case resp.DBSize:
 		if err := s.handlers.DBSize(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.DBSize: %w", err)
+			return fmt.Errorf("handlers.DBSize: %v", err)
 		}
 
 	default:
