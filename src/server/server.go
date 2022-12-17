@@ -184,10 +184,6 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 		if err := s.handlers.Ping(conn, cmd); err != nil {
 			return fmt.Errorf("handlers.Ping: %w", err)
 		}
-	case resp.Config:
-		if err := s.handlers.Config(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.Config: %w", err)
-		}
 	case resp.Get:
 		if err := s.handlers.Get(conn, cmd); err != nil {
 			return fmt.Errorf("handlers.Get: %w", err)
