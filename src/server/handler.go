@@ -19,7 +19,7 @@ func NewHandlers(logger logger.Logger, storage Storage) *Handlers {
 	return &Handlers{logger: logger, storage: storage}
 }
 
-// Get returns the Value of a given Key
+// Get : Get the value of a key
 func (h *Handlers) Get(conn net.Conn, cmd []string) error {
 	if len(cmd) != 2 {
 		err := resp.NewError(fmt.Sprintf("ERR wrong number of arguments for 'GET' command"))
@@ -35,6 +35,8 @@ func (h *Handlers) Get(conn net.Conn, cmd []string) error {
 		if _, err := ok.WriteTo(conn); err != nil {
 			h.logger.Printf("unable to write")
 		}
+
+		return nil
 	}
 
 	if err != nil {
@@ -48,7 +50,7 @@ func (h *Handlers) Get(conn net.Conn, cmd []string) error {
 	return nil
 }
 
-// Set sets a Key-Value pair in the storage
+// Set : Set the string value of a key
 func (h *Handlers) Set(conn net.Conn, cmd []string) error {
 	if len(cmd) != 3 {
 		err := resp.NewError(fmt.Sprintf("ERR wrong number of arguments for 'SET' command"))
@@ -81,6 +83,7 @@ func (h *Handlers) UnknownCommand(conn net.Conn, verb string) error {
 	return nil
 }
 
+// Ping : Ping the server
 func (h *Handlers) Ping(conn net.Conn, cmd []string) error {
 	if len(cmd) == 1 {
 		ok := resp.NewSimpleString("PONG")
@@ -99,38 +102,7 @@ func (h *Handlers) Ping(conn net.Conn, cmd []string) error {
 	return nil
 }
 
-func (h *Handlers) Config(conn net.Conn, cmd []string) error {
-	if len(cmd) == 1 {
-		err := resp.NewError(fmt.Sprintf("ERR unable to return all the configuration"))
-
-		if _, err := err.WriteTo(conn); err != nil {
-			return fmt.Errorf("unable to write all the configuration: %w", err)
-		}
-	}
-
-	switch strings.Join(cmd, " ") {
-	case "CONFIG GET appendonly":
-		rsp := resp.NewArray([]string{"appendonly", "no"})
-		if _, err := rsp.WriteTo(conn); err != nil {
-			h.logger.Printf("unable to write: %v", err)
-		}
-	case "CONFIG GET save":
-		rsp := resp.NewArray([]string{"save", "3600 1 300 100 60 10000"})
-		if _, err := rsp.WriteTo(conn); err != nil {
-			h.logger.Printf("unable to write: %v", err)
-		}
-	default:
-		err := resp.NewError(fmt.Sprintf("ERR unsupported CONFIG command"))
-
-		if _, err := err.WriteTo(conn); err != nil {
-			return fmt.Errorf("unsupported CONFIG command: %w", err)
-		}
-	}
-
-	return nil
-
-}
-
+// DBSize : Return the number of keys in the selected database
 func (h *Handlers) DBSize(conn net.Conn, cmd []string) error {
 	size := resp.NewInteger(strconv.Itoa(h.storage.Size()))
 	if _, err := size.WriteTo(conn); err != nil {
