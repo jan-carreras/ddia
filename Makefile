@@ -14,3 +14,7 @@ fmt: ## Formats project
 .PHONY: fmt
 redis-server: ## Starts a real redis server
 	redis-server --loglevel verbose
+
+commands.md: ## Generates the Commands available in Redis server
+	python3 scripts/redis-commands.py > commands.md
+
