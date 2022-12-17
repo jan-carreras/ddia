@@ -16,4 +16,5 @@ const (
 	Get    = "GET"
 	Set    = "SET"
 	DBSize = "DBSIZE"
+	Del    = "DEL"
 )

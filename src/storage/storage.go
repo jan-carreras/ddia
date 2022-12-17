@@ -41,3 +41,11 @@ func (m *InMemory) Size() int {
 	defer m.recordsMux.RUnlock()
 	return len(m.records)
 }
+
+func (m *InMemory) Del(key string) bool {
+	m.recordsMux.Lock()
+	defer m.recordsMux.Unlock()
+	_, found := m.records[key]
+	delete(m.records, key)
+	return found
+}

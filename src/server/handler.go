@@ -131,10 +131,35 @@ func (h *Handlers) Config(conn net.Conn, cmd []string) error {
 
 }
 
-func (h *Handlers) DBSize(conn net.Conn, cmd []string) interface{} {
+func (h *Handlers) DBSize(conn net.Conn, cmd []string) error {
 	size := resp.NewInteger(strconv.Itoa(h.storage.Size()))
 	if _, err := size.WriteTo(conn); err != nil {
 		h.logger.Printf("unable to write: %v", err)
+	}
+
+	return nil
+}
+
+// Del : Delete a key
+func (h *Handlers) Del(conn net.Conn, cmd []string) error {
+	if len(cmd) == 1 {
+		err := resp.NewError("ERR wrong number of arguments for 'del' command")
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("unable to write all the configuration: %w", err)
+		}
+		return nil
+	}
+
+	countDeleted := 0
+	for _, key := range cmd[1:] {
+		if h.storage.Del(key) {
+			countDeleted++
+		}
+	}
+
+	r := resp.NewInteger(strconv.Itoa(countDeleted))
+	if _, err := r.WriteTo(conn); err != nil {
+		h.logger.Printf("unable to write response: %v", err)
 	}
 
 	return nil

@@ -23,6 +23,7 @@ type Storage interface {
 	Get(key string) (string, error)
 	Set(key, value string) error
 	Size() int
+	Del(key string) bool
 }
 
 type Server struct {
@@ -199,7 +200,10 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 		if err := s.handlers.DBSize(conn, cmd); err != nil {
 			return fmt.Errorf("handlers.DBSize: %v", err)
 		}
-
+	case resp.Del:
+		if err := s.handlers.Del(conn, cmd); err != nil {
+			return fmt.Errorf("handlers.Del: %v", err)
+		}
 	default:
 		if err := s.handlers.UnknownCommand(conn, verb); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)
