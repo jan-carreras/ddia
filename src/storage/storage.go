@@ -35,3 +35,9 @@ func (m *InMemory) Get(key string) (string, error) {
 
 	return val, nil
 }
+
+func (m *InMemory) Size() int {
+	m.recordsMux.RLock()
+	defer m.recordsMux.RUnlock()
+	return len(m.records)
+}

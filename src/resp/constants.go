@@ -11,7 +11,9 @@ const (
 const readBufferSize = 512 // bytes
 
 const (
-	Ping = "PING"
-	Get  = "GET"
-	Set  = "SET"
+	Ping   = "PING"
+	Config = "CONFIG"
+	Get    = "GET"
+	Set    = "SET"
+	DBSize = "DBSIZE"
 )

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 )
 
@@ -28,9 +29,6 @@ func (h *Handlers) Get(conn net.Conn, cmd []string) error {
 		return nil
 	}
 
-	// TODO: Understand which can of response should we return
-	// 	It's unclear to me which data-type should I return:
-	//  	Simple Strings or Bulk Strings?
 	val, err := h.storage.Get(cmd[1])
 	if errors.Is(err, ErrNotFound) {
 		ok := resp.NewSimpleString("")
@@ -95,6 +93,47 @@ func (h *Handlers) Ping(conn net.Conn, cmd []string) error {
 
 	ok := resp.NewSimpleString(strings.Join(cmd[1:], " "))
 	if _, err := ok.WriteTo(conn); err != nil {
+		h.logger.Printf("unable to write: %v", err)
+	}
+
+	return nil
+}
+
+func (h *Handlers) Config(conn net.Conn, cmd []string) error {
+	if len(cmd) == 1 {
+		err := resp.NewError(fmt.Sprintf("ERR unable to return all the configuration"))
+
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("unable to write all the configuration: %w", err)
+		}
+	}
+
+	switch strings.Join(cmd, " ") {
+	case "CONFIG GET appendonly":
+		rsp := resp.NewArray([]string{"appendonly", "no"})
+		if _, err := rsp.WriteTo(conn); err != nil {
+			h.logger.Printf("unable to write: %v", err)
+		}
+	case "CONFIG GET save":
+		rsp := resp.NewArray([]string{"save", "3600 1 300 100 60 10000"})
+		if _, err := rsp.WriteTo(conn); err != nil {
+			h.logger.Printf("unable to write: %v", err)
+		}
+	default:
+		err := resp.NewError(fmt.Sprintf("ERR unsupported CONFIG command"))
+
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("unsupported CONFIG command: %w", err)
+		}
+	}
+
+	return nil
+
+}
+
+func (h *Handlers) DBSize(conn net.Conn, cmd []string) interface{} {
+	size := resp.NewInteger(strconv.Itoa(h.storage.Size()))
+	if _, err := size.WriteTo(conn); err != nil {
 		h.logger.Printf("unable to write: %v", err)
 	}
 

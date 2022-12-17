@@ -22,6 +22,7 @@ var ErrNotFound = errors.New("not found")
 type Storage interface {
 	Get(key string) (string, error)
 	Set(key, value string) error
+	Size() int
 }
 
 type Server struct {
@@ -114,11 +115,12 @@ func (s *Server) Addr() string {
 // TODO: We should return error responses if something fails
 func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 	defer func() {
-		if err := conn.Close(); err != nil {
+		// TODO: Do we really want to close the connection? We could let the client to do that, right?
+		/*if err := conn.Close(); err != nil {
 			s.logger.Printf("unable to close the connection")
 			return
 		}
-		s.logger.Printf("connection closed %s", conn.RemoteAddr().String())
+		s.logger.Printf("connection closed %s", conn.RemoteAddr().String())*/
 	}()
 	if err := conn.SetDeadline(time.Now().Add(time.Second)); err != nil {
 		return fmt.Errorf("error when setting the timeout: %w", err)
@@ -181,14 +183,21 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 		if err := s.handlers.Ping(conn, cmd); err != nil {
 			return fmt.Errorf("handlers.Ping: %w", err)
 		}
+	case resp.Config:
+		if err := s.handlers.Config(conn, cmd); err != nil {
+			return fmt.Errorf("handlers.Config: %w", err)
+		}
 	case resp.Get:
 		if err := s.handlers.Get(conn, cmd); err != nil {
 			return fmt.Errorf("handlers.Get: %w", err)
 		}
-
 	case resp.Set:
 		if err := s.handlers.Set(conn, cmd); err != nil {
 			return fmt.Errorf("handlers.Set: %w", err)
+		}
+	case resp.DBSize:
+		if err := s.handlers.DBSize(conn, cmd); err != nil {
+			return fmt.Errorf("handlers.DBSize: %w", err)
 		}
 
 	default:
