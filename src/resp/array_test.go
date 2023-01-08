@@ -3,8 +3,7 @@ package resp_test
 import (
 	"bytes"
 	"ddia/src/resp"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"errors"
 	"strings"
 	"testing"
 )
@@ -14,9 +13,13 @@ func TestBulkStr_ReadFrom(t *testing.T) {
 
 	input := strings.NewReader("*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n")
 	_, err := bulk.ReadFrom(input)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ReadFrom: %v", err)
+	}
 
-	require.Equal(t, "hello world", bulk.String())
+	if want := "hello world"; bulk.String() != want {
+		t.Fatalf("invalid response: %q, want %q", bulk.String(), want)
+	}
 }
 
 func TestBulkStr_ReadFrom_Errors(t *testing.T) {
@@ -53,9 +56,17 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := bulk.ReadFrom(strings.NewReader(tt.input))
-			assert.Error(t, err)
-			require.ErrorIs(t, err, resp.ErrParsingError)
-			require.ErrorContains(t, err, tt.expectErrContains)
+			if err == nil {
+				t.Errorf("expecting error: %v", err)
+			}
+
+			if !errors.Is(err, resp.ErrParsingError) {
+				t.Fatalf("invalid error returned: %v, expecting %v", err, resp.ErrParsingError)
+			}
+
+			if !strings.Contains(err.Error(), tt.expectErrContains) {
+				t.Fatalf("invalid error message: %v, expected to contain %q", err, tt.expectErrContains)
+			}
 		})
 
 	}
@@ -65,10 +76,18 @@ func TestBulkStr_StringAndBytes(t *testing.T) {
 	bulk := resp.Array{}
 
 	_, err := bulk.ReadFrom(strings.NewReader("*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"))
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ReadFrom: %v", err)
+	}
 
-	require.Equal(t, "hello world", bulk.String())
-	require.Equal(t, []byte(bulk.String()), bulk.Bytes())
+	if want := "hello world"; bulk.String() != want {
+		t.Fatalf("invalid response: %q, expecting %q", bulk.String(), want)
+	}
+
+	if !bytes.Equal([]byte(bulk.String()), bulk.Bytes()) {
+		t.Fatalf("bytes and string response must be the same: %q want %q", string(bulk.Bytes()), bulk.String())
+
+	}
 }
 
 func TestBulkStr_WriteTo(t *testing.T) {
@@ -77,12 +96,21 @@ func TestBulkStr_WriteTo(t *testing.T) {
 	text := "*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
 
 	_, err := bulk.ReadFrom(strings.NewReader(text))
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ReadFrom: %v", err)
+	}
 
 	buf := &bytes.Buffer{}
 	n, err := bulk.WriteTo(buf)
-	require.NoError(t, err)
-	require.NotZero(t, n)
+	if err != nil {
+		t.Fatalf("WriteTo: %v", err)
+	}
 
-	require.Equal(t, text, buf.String())
+	if n == 0 {
+		t.Fatalf("invalid n: %d, want non-zero instead", n)
+	}
+
+	if buf.String() != text {
+		t.Fatalf("invalid text: %q, want %q", buf.String(), text)
+	}
 }
