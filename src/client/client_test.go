@@ -5,71 +5,107 @@ import (
 	"ddia/src/client"
 	"ddia/src/server"
 	"ddia/src/storage"
-	"github.com/stretchr/testify/require"
+	"io"
 	"log"
-	"os"
 	"testing"
 )
 
+func loggerOutput() io.Writer {
+	return io.Discard
+}
+
 func TestClient_Set(t *testing.T) {
-	logger := log.New(os.Stdout, "[server] ", 0)
+	logger := log.New(loggerOutput(), "[server] ", 0)
 	store := storage.NewInMemory()
 	handlers := server.NewHandlers(logger, store)
 	s := server.NewServer(logger, "localhost", 0, handlers)
 
 	err := s.Start(context.Background())
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("start application: %v", err)
+	}
 
-	logger = log.New(os.Stdout, "[client] ", 0)
+	logger = log.New(loggerOutput(), "[client] ", 0)
 	c := client.NewClient(logger, s.Addr())
 
 	rsp, err := c.Set("hello", "world")
-	require.NoError(t, err)
-	require.Equal(t, "OK", string(rsp))
+	if err != nil {
+		t.Fatalf("c.Set: %v", err)
+	}
+
+	if want := "OK"; string(rsp) != want {
+		t.Fatalf("response: %q, expecting %q", string(rsp), want)
+	}
 
 	rsp, err = c.Set("chao", "universe")
-	require.NoError(t, err)
-	require.Equal(t, "OK", string(rsp))
+	if err != nil {
+		t.Fatalf("c.Set: %v", err)
+	}
+
+	if want := "OK"; string(rsp) != want {
+		t.Fatalf("response: %q, expecting %q", string(rsp), want)
+	}
 }
 
 func TestClient_Get(t *testing.T) {
 	store := storage.NewInMemory()
-	logger := log.New(os.Stdout, "[server] ", 0)
+	logger := log.New(loggerOutput(), "[server] ", 0)
 	handlers := server.NewHandlers(logger, store)
 	s := server.NewServer(logger, "localhost", 0, handlers)
 
 	err := s.Start(context.Background())
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("start: %v", err)
+	}
 
-	logger = log.New(os.Stdout, "[client] ", 0)
+	logger = log.New(loggerOutput(), "[client] ", 0)
 	c := client.NewClient(logger, s.Addr())
 
 	k, v := "hello", "world"
 	err = store.Set(k, v)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Set: %v", err)
+	}
 
 	rsp, err := c.Get(k)
-	require.NoError(t, err)
-	require.Equal(t, "world", string(rsp))
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+
+	if want := "world"; want != string(rsp) {
+		t.Fatalf("invalid response: %q, expecting %q", string(rsp), want)
+	}
 }
 
 func TestClient_Ping(t *testing.T) {
 	store := storage.NewInMemory()
-	logger := log.New(os.Stdout, "[server] ", 0)
+	logger := log.New(loggerOutput(), "[server] ", 0)
 	handlers := server.NewHandlers(logger, store)
 	s := server.NewServer(logger, "localhost", 0, handlers)
 
 	err := s.Start(context.Background())
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("start: %v", err)
+	}
 
-	logger = log.New(os.Stdout, "[client] ", 0)
+	logger = log.New(loggerOutput(), "[client] ", 0)
 	c := client.NewClient(logger, s.Addr())
 
 	rsp, err := c.Ping("")
-	require.NoError(t, err)
-	require.Equal(t, "PONG", string(rsp))
+	if err != nil {
+		t.Fatalf("Ping: %v", err)
+	}
+
+	if want := "PONG"; string(rsp) != want {
+		t.Fatalf("invalid response: %q, expecting %q", string(rsp), want)
+	}
 
 	rsp, err = c.Ping("hello world")
-	require.NoError(t, err)
-	require.Equal(t, "hello world", string(rsp))
+	if err != nil {
+		t.Fatalf("Ping: %v", err)
+	}
+
+	if want := "hello world"; want != string(rsp) {
+		t.Fatalf("invalid response: %q, expecting %q", string(rsp), want)
+	}
 }
