@@ -1,20 +1,35 @@
 package resp
 
+// More documentation on: https://redis.io/docs/reference/protocol-spec/
+
 const (
+	// SimpleStringOp defines a simple string datatype. Example: "+OK\r\n"
 	SimpleStringOp = '+'
-	ErrorOp        = '-'
-	IntegerOp      = ':'
-	BulkStringOp   = '$'
-	ArrayOp        = '*'
+	// ErrorOp defines a error. Example: "-Error message\r\n"
+	ErrorOp = '-'
+	// IntegerOp defines a error Integer. Example: ":1000\r\n"
+	IntegerOp = ':'
+	// BulkStringOp defines a BulkStringOp. Example: "$5\r\nhello\r\n"
+	BulkStringOp = '$'
+	// ArrayOp defines a RESP Arrays. Example: "*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
+	//
+	// Clients send commands to the Redis server using RESP Arrays. Similarly,
+	// certain Redis commands, that return collections of elements to the client, use
+	// RESP Arrays as their replies.
+	ArrayOp = '*'
 )
 
 const readBufferSize = 512 // bytes
 
 const (
-	Ping   = "PING"
-	Config = "CONFIG"
-	Get    = "GET"
-	Set    = "SET"
+	// Ping command
+	Ping = "PING"
+	// Get command
+	Get = "GET"
+	// Set command
+	Set = "SET"
+	// DBSize command
 	DBSize = "DBSIZE"
-	Del    = "DEL"
+	// Del command
+	Del = "DEL"
 )

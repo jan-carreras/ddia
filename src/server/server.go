@@ -1,3 +1,4 @@
+// Package server implements a Redis 1.0 server
 package server
 
 import (
@@ -16,6 +17,7 @@ const (
 	serverNetwork = "tcp"
 )
 
+// Server defines a Redis Server
 type Server struct {
 	logger   logger.Logger
 	options  options
@@ -28,6 +30,7 @@ type Server struct {
 	handlers *Handlers
 }
 
+// New returns a new Redis Server configured with the Options provided
 func New(handlers *Handlers, opts ...Option) *Server {
 	options := &options{
 		logger: logger.NewDiscard(),
@@ -46,6 +49,7 @@ func New(handlers *Handlers, opts ...Option) *Server {
 	}
 }
 
+// Start starts the redis server
 func (s *Server) Start(ctx context.Context) error {
 	listener, err := net.Listen(serverNetwork, fmt.Sprintf("%s:%d", s.options.host, s.options.port))
 	if err != nil {
@@ -98,6 +102,7 @@ func (s *Server) serve(ctx context.Context) {
 	}
 }
 
+// Stop stops the server
 func (s *Server) Stop() error {
 	close(s.quit)
 	err := s.listener.Close() // Close listener, thus new connections
@@ -106,6 +111,7 @@ func (s *Server) Stop() error {
 	return err
 }
 
+// Addr returns the address where the server is listening (for example, "192.0.2.1:25", "[2001:db8::1]:80")
 func (s *Server) Addr() string {
 	return s.addr
 }
@@ -114,7 +120,7 @@ func (s *Server) Addr() string {
 func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 	defer func() {
 		if err := conn.Close(); err != nil {
-			s.logger.Printf("unable to close the connection")
+			s.logger.Printf("unable to close server side connection")
 		}
 	}()
 
@@ -151,7 +157,7 @@ func (s *Server) readCommand(conn net.Conn) ([]string, error) {
 
 		return cmd, nil
 	default:
-		return nil, errors.New(fmt.Sprintf("unknown opertion type: %q", operation))
+		return nil, fmt.Errorf("unknown opertion type: %q", operation)
 	}
 }
 

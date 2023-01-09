@@ -7,19 +7,20 @@ import (
 
 var _ dataType = (*Integer)(nil)
 
+// Integer datatype defines a Integer value
 type Integer struct {
 	string string
 }
 
+// NewInteger returns a Integer datatype
 func NewInteger(string string) *Integer {
 	return &Integer{string: string}
 }
 
 // ReadFrom reads from the Reader and loads the Integer object
-// Example: "+OK\r\n"
 func (s *Integer) ReadFrom(r io.Reader) (readCount int64, err error) {
 	err = checkOperation(r, IntegerOp)
-	readCount += 1 // Read the first byte
+	readCount = 1 // Read the first byte
 	if err != nil {
 		return readCount, err
 	}

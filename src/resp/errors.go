@@ -5,10 +5,12 @@ import (
 	"io"
 )
 
+// Error defines a protocol error
 type Error struct {
 	string string
 }
 
+// NewError returns an Error
 func NewError(string string) *Error {
 	return &Error{string: string}
 }
@@ -17,7 +19,7 @@ func NewError(string string) *Error {
 // Example: "+OK\r\n"
 func (s *Error) ReadFrom(r io.Reader) (readCount int64, err error) {
 	err = checkOperation(r, ErrorOp)
-	readCount += 1 // Read the first byte
+	readCount = 1 // Read the first byte
 	if err != nil {
 		return readCount, err
 	}

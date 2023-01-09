@@ -11,6 +11,10 @@ test: ## Run all tests
 fmt: ## Formats project
 	go fmt ./...
 
+.PHONY: lint
+lint:
+	golangci-lint run
+
 .PHONY: fmt
 redis-server: ## Starts a real redis server
 	redis-server --loglevel verbose

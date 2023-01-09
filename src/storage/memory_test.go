@@ -88,6 +88,7 @@ func TestInMemory_GetSet_Concurrent(t *testing.T) {
 		}
 	}
 
+	//nolint: govet // supresses:  testinggoroutine: call to (*T).Fatalf from a non-test goroutine
 	for i := 0; i < 30; i++ {
 		wg.Add(2)
 		go write()

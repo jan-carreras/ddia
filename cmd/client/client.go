@@ -1,3 +1,4 @@
+// Package main is a command for the Redis client
 package main
 
 import (
@@ -25,7 +26,7 @@ func runClient() error {
 	logger.Printf("set: %q\n", string(set))
 
 	for i := 0; i < 10; i++ {
-		c.Set(fmt.Sprintf("hello %d", i), "world")
+		_, _ = c.Set(fmt.Sprintf("hello %d", i), "world")
 	}
 
 	get, err := c.Get("hello")

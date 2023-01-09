@@ -1,3 +1,4 @@
+// Package client implements a Redis 1.0 client
 package client
 
 import (
@@ -20,6 +21,7 @@ type Client struct {
 	addr   string
 }
 
+// NewClient returns a Redis Client
 func NewClient(logger logger.Logger, addr string) *Client {
 	return &Client{logger: logger, addr: addr}
 }
@@ -48,6 +50,7 @@ func (c *Client) Set(key, value string) ([]byte, error) {
 	return rsp, nil
 }
 
+// Get returns the key being requested
 func (c *Client) Get(key string) ([]byte, error) {
 	cmd, err := encodeBulkStrings([]string{"GET", key})
 	if err != nil {
@@ -73,6 +76,7 @@ func (c *Client) Get(key string) ([]byte, error) {
 
 }
 
+// Ping returns the key being send, or the string PONG
 func (c *Client) Ping(key string) ([]byte, error) {
 	cmd, err := encodeBulkStrings([]string{"PING"})
 	if len(key) != 0 {

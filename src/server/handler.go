@@ -10,11 +10,14 @@ import (
 	"strings"
 )
 
+// Handlers define the commands being handled by the Redis Server. A new command should be registered
+// as a public function in the handler file.
 type Handlers struct {
 	logger  logger.Logger
 	storage Storage
 }
 
+// NewHandlers returns a Handlers
 func NewHandlers(logger logger.Logger, storage Storage) *Handlers {
 	return &Handlers{logger: logger, storage: storage}
 }
@@ -22,7 +25,7 @@ func NewHandlers(logger logger.Logger, storage Storage) *Handlers {
 // Get : Get the value of a key
 func (h *Handlers) Get(conn net.Conn, cmd []string) error {
 	if len(cmd) != 2 {
-		err := resp.NewError(fmt.Sprintf("ERR wrong number of arguments for 'GET' command"))
+		err := resp.NewError("ERR wrong number of arguments for 'GET' command")
 		if _, err := err.WriteTo(conn); err != nil {
 			return fmt.Errorf("on invalid number of arguments: %w", err)
 		}
@@ -53,7 +56,7 @@ func (h *Handlers) Get(conn net.Conn, cmd []string) error {
 // Set : Set the string value of a key
 func (h *Handlers) Set(conn net.Conn, cmd []string) error {
 	if len(cmd) != 3 {
-		err := resp.NewError(fmt.Sprintf("ERR wrong number of arguments for 'SET' command"))
+		err := resp.NewError("ERR wrong number of arguments for 'SET' command")
 		if _, err := err.WriteTo(conn); err != nil {
 			return fmt.Errorf("on invalid number of arguments: %w", err)
 		}

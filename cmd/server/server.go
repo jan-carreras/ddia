@@ -1,3 +1,4 @@
+// Package main is a command for the Redis server
 package main
 
 import (

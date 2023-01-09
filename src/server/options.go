@@ -8,9 +8,9 @@ type options struct {
 	logger logger.Logger
 	host   string
 	port   int
-	addr   string
 }
 
+// Option defines an interface that all options must match
 type Option interface {
 	apply(*options)
 }
@@ -23,6 +23,7 @@ func (l loggerOption) apply(opts *options) {
 	opts.logger = l.log
 }
 
+// WithLogger uses log as logger
 func WithLogger(log logger.Logger) Option {
 	return loggerOption{log: log}
 }
@@ -33,6 +34,7 @@ func (h host) apply(opts *options) {
 	opts.host = string(h)
 }
 
+// WithHost uses h hostname to start the Redis server
 func WithHost(h string) Option {
 	return host(h)
 }
@@ -43,10 +45,12 @@ func (p port) apply(opts *options) {
 	opts.port = int(p)
 }
 
+// WithPort starts Redis server on the given port
 func WithPort(p int) Option {
 	return port(p)
 }
 
+// WithRandomPort starts Redis server on a free random port
 func WithRandomPort() Option {
 	return port(0)
 }

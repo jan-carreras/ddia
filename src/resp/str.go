@@ -7,13 +7,18 @@ import (
 
 var _ dataType = (*Str)(nil)
 
+// Str returns a Str datatype
 type Str struct {
 	s string
 }
 
-func (b *Str) Bytes() []byte  { return []byte(b.s) }
+// Bytes returns the bytes representation of the string
+func (b *Str) Bytes() []byte { return []byte(b.s) }
+
+// String returns the string representation of Str datatype
 func (b *Str) String() string { return b.s }
 
+// WriteTo writes the information on Str and dumps it into the Writer
 func (b *Str) WriteTo(w io.Writer) (int64, error) {
 	n, err := fmt.Fprintf(w, "%c%d\r\n%s\r\n", byte(BulkStringOp), len(b.s), b.s)
 	if err != nil {
@@ -23,6 +28,7 @@ func (b *Str) WriteTo(w io.Writer) (int64, error) {
 	return int64(n), nil
 }
 
+// ReadFrom reads from the Reader and loads the Str object
 func (b *Str) ReadFrom(r io.Reader) (int64, error) {
 	n, err := b.readFrom(r)
 	if err != nil {

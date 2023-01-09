@@ -8,7 +8,10 @@ import (
 	"io"
 )
 
+// ErrParsingError returned when we cannot parse some information
 var ErrParsingError = errors.New("parsing error")
+
+// ErrEncodingError returned when we cannot encode some information
 var ErrEncodingError = errors.New("encoding error")
 
 // dataType is the interface to be implemented by each datatype on RESP
@@ -74,7 +77,7 @@ func ignoreDelimiters(r io.Reader) error {
 
 	// And make sure it was he character read, otherwise fail
 	if char != '\n' {
-		return fmt.Errorf("expected character %q, expecting \n", string(char))
+		return fmt.Errorf("expected character %q, expecting \\n", string(char))
 	}
 
 	return nil

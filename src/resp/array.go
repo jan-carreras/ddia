@@ -16,18 +16,23 @@ type Array struct {
 	strings []string
 }
 
+// NewArray returns an Array type
 func NewArray(strings []string) Array {
 	return Array{strings: strings}
 }
 
+// Bytes returns the []bytes representation of an Array
 func (b *Array) Bytes() []byte { return []byte(b.String()) }
 
+// String returns the string representation of an Array
 func (b *Array) String() string { return strings.Join(b.strings, " ") }
 
+// Strings returns a slice of strings of an Array
 func (b *Array) Strings() []string {
 	return b.strings
 }
 
+// WriteTo writes the array into the Writer. It matches io.WriterTo interface
 func (b *Array) WriteTo(w io.Writer) (int64, error) {
 	length := len(b.strings)
 	if length == 0 {
@@ -52,6 +57,7 @@ func (b *Array) WriteTo(w io.Writer) (int64, error) {
 	return int64(count), nil
 }
 
+// ReadFrom reads an Array object from r. It matches io.ReaderFrom interface
 func (b *Array) ReadFrom(r io.Reader) (int64, error) {
 	n, err := b.readFrom(r)
 	if err != nil {

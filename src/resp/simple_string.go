@@ -7,10 +7,12 @@ import (
 
 var _ dataType = (*SimpleString)(nil)
 
+// SimpleString returns a SimpleString datatype
 type SimpleString struct {
 	string string
 }
 
+// NewSimpleString returns a SingleString datatype
 func NewSimpleString(string string) *SimpleString {
 	return &SimpleString{string: string}
 }
@@ -19,7 +21,7 @@ func NewSimpleString(string string) *SimpleString {
 // Example: "+OK\r\n"
 func (s *SimpleString) ReadFrom(r io.Reader) (readCount int64, err error) {
 	err = checkOperation(r, SimpleStringOp)
-	readCount += 1 // Read the first byte
+	readCount = 1 // Read the first byte
 	if err != nil {
 		return readCount, err
 	}
