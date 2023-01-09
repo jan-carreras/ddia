@@ -188,11 +188,11 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 		}
 	case resp.DBSize:
 		if err := s.handlers.DBSize(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.DBSize: %v", err)
+			return fmt.Errorf("handlers.DBSize: %w", err)
 		}
 	case resp.Del:
 		if err := s.handlers.Del(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.Del: %v", err)
+			return fmt.Errorf("handlers.Del: %w", err)
 		}
 	default:
 		if err := s.handlers.UnknownCommand(conn, cmd[0]); err != nil {
