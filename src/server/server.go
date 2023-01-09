@@ -17,15 +17,6 @@ const (
 	serverNetwork = "tcp"
 )
 
-var ErrNotFound = errors.New("not found")
-
-type Storage interface {
-	Get(key string) (string, error)
-	Set(key, value string) error
-	Size() int
-	Del(key string) bool
-}
-
 type Server struct {
 	logger   logger.Logger
 	host     string
