@@ -133,8 +133,6 @@ func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 			return fmt.Errorf("processCommand: %w", err)
 		}
 	}
-
-	return nil
 }
 
 func (s *Server) readCommand(conn net.Conn) ([]string, error) {
