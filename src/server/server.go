@@ -19,8 +19,7 @@ const (
 
 type Server struct {
 	logger   logger.Logger
-	host     string
-	port     int
+	options  options
 	addr     string
 	listener net.Listener
 	// quit signals if we want to keep listening for new incoming requests or not
@@ -30,18 +29,26 @@ type Server struct {
 	handlers *Handlers
 }
 
-func NewServer(logger logger.Logger, host string, port int, handlers *Handlers) *Server {
+func New(handlers *Handlers, opts ...Option) *Server {
+	options := &options{
+		logger: logger.NewDiscard(),
+		host:   "localhost",
+		port:   6379,
+	}
+	for _, o := range opts {
+		o.apply(options)
+	}
+
 	return &Server{
-		logger:   logger,
-		host:     host,
-		port:     port,
+		logger:   options.logger,
+		options:  *options,
 		quit:     make(chan interface{}),
 		handlers: handlers,
 	}
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	listener, err := net.Listen(serverNetwork, fmt.Sprintf("%s:%d", s.host, s.port))
+	listener, err := net.Listen(serverNetwork, fmt.Sprintf("%s:%d", s.options.host, s.options.port))
 	if err != nil {
 		return fmt.Errorf("net.Listen: %w", err)
 	}

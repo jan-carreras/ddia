@@ -5,28 +5,22 @@ import (
 	"ddia/src/client"
 	"ddia/src/server"
 	"ddia/src/storage"
-	"io"
-	"log"
+	"ddia/testing/log"
 	"testing"
 )
 
-func loggerOutput() io.Writer {
-	return io.Discard
-}
-
 func TestClient_Set(t *testing.T) {
-	logger := log.New(loggerOutput(), "[server] ", 0)
+	logger := log.ServerLogger()
 	store := storage.NewInMemory()
 	handlers := server.NewHandlers(logger, store)
-	s := server.NewServer(logger, "localhost", 0, handlers)
+	s := server.New(handlers, server.WithRandomPort(), server.WithLogger(logger))
 
 	err := s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("start application: %v", err)
 	}
 
-	logger = log.New(loggerOutput(), "[client] ", 0)
-	c := client.NewClient(logger, s.Addr())
+	c := client.NewClient(log.ClientLogger(), s.Addr())
 
 	rsp, err := c.Set("hello", "world")
 	if err != nil {
@@ -49,17 +43,16 @@ func TestClient_Set(t *testing.T) {
 
 func TestClient_Get(t *testing.T) {
 	store := storage.NewInMemory()
-	logger := log.New(loggerOutput(), "[server] ", 0)
+	logger := log.ServerLogger()
 	handlers := server.NewHandlers(logger, store)
-	s := server.NewServer(logger, "localhost", 0, handlers)
+	s := server.New(handlers, server.WithRandomPort(), server.WithLogger(logger))
 
 	err := s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("start: %v", err)
 	}
 
-	logger = log.New(loggerOutput(), "[client] ", 0)
-	c := client.NewClient(logger, s.Addr())
+	c := client.NewClient(log.ClientLogger(), s.Addr())
 
 	k, v := "hello", "world"
 	err = store.Set(k, v)
@@ -79,17 +72,16 @@ func TestClient_Get(t *testing.T) {
 
 func TestClient_Ping(t *testing.T) {
 	store := storage.NewInMemory()
-	logger := log.New(loggerOutput(), "[server] ", 0)
+	logger := log.ServerLogger()
 	handlers := server.NewHandlers(logger, store)
-	s := server.NewServer(logger, "localhost", 0, handlers)
+	s := server.New(handlers, server.WithRandomPort(), server.WithLogger(logger))
 
 	err := s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("start: %v", err)
 	}
 
-	logger = log.New(loggerOutput(), "[client] ", 0)
-	c := client.NewClient(logger, s.Addr())
+	c := client.NewClient(log.ClientLogger(), s.Addr())
 
 	rsp, err := c.Ping("")
 	if err != nil {

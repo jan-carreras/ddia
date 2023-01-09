@@ -5,27 +5,25 @@ import (
 	"ddia/src/client"
 	"ddia/src/server"
 	"ddia/src/storage"
-	"log"
-	"os"
+	"ddia/testing/log"
 	"testing"
 	"time"
 )
 
 func TestStart(t *testing.T) {
-	logger := log.New(os.Stdout, "[server] ", 0)
+	logger := log.ServerLogger()
 	store := storage.NewInMemory()
 	handlers := server.NewHandlers(logger, store)
-	s := server.NewServer(logger, "localhost", 0, handlers)
+	s := server.New(handlers, server.WithLogger(logger), server.WithRandomPort())
 
 	err := s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("Start faield: %v, wanted no error", err)
 	}
 
-	logger = log.New(os.Stdout, "[client] ", 0)
 	// TODO: This approach won't work if we're not adding support for reusing a connection
 	// 	We would need to pass the s.Addr inside and manage the connection there (which makes total sense)
-	cli := client.NewClient(logger, s.Addr())
+	cli := client.NewClient(log.ClientLogger(), s.Addr())
 
 	rsp, err := cli.Set("hello", "world")
 	if err != nil {
@@ -39,17 +37,16 @@ func TestStart(t *testing.T) {
 func TestServer_Set(t *testing.T) {
 	store := storage.NewInMemory()
 
-	logger := log.New(os.Stdout, "[server] ", 0)
+	logger := log.ServerLogger()
 	handlers := server.NewHandlers(logger, store)
-	s := server.NewServer(logger, "localhost", 0, handlers)
+	s := server.New(handlers, server.WithLogger(logger), server.WithRandomPort())
 
 	err := s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("Start faield: %v, wanted no error", err)
 	}
 
-	logger = log.New(os.Stdout, "[client] ", 0)
-	cli := client.NewClient(logger, s.Addr())
+	cli := client.NewClient(log.ClientLogger(), s.Addr())
 
 	rsp, err := cli.Set("hello", "world")
 	if err != nil {
@@ -71,17 +68,16 @@ func TestServer_Set(t *testing.T) {
 func TestServer_Ping(t *testing.T) {
 	store := storage.NewInMemory()
 
-	logger := log.New(os.Stdout, "[server] ", 0)
+	logger := log.ServerLogger()
 	handlers := server.NewHandlers(logger, store)
-	s := server.NewServer(logger, "localhost", 0, handlers)
+	s := server.New(handlers, server.WithLogger(logger), server.WithRandomPort())
 
 	err := s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("Start faield: %v, wanted no error", err)
 	}
 
-	logger = log.New(os.Stdout, "[client] ", 0)
-	cli := client.NewClient(logger, s.Addr())
+	cli := client.NewClient(log.ClientLogger(), s.Addr())
 
 	rsp, err := cli.Ping("")
 	if err != nil {
@@ -102,11 +98,11 @@ func TestServer_Ping(t *testing.T) {
 }
 
 func TestStart_GracefulShutdown(t *testing.T) {
-	logger := log.New(os.Stdout, "[server] ", 0)
+	logger := log.ServerLogger()
 	store := storage.NewInMemory()
 	handlers := server.NewHandlers(logger, store)
 
-	s := server.NewServer(logger, "localhost", 0, handlers)
+	s := server.New(handlers, server.WithRandomPort(), server.WithLogger(logger))
 
 	err := s.Start(context.Background())
 	if err != nil {
