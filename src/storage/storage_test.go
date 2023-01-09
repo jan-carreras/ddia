@@ -3,7 +3,7 @@ package storage_test
 import (
 	"ddia/src/server"
 	"ddia/src/storage"
-	"github.com/stretchr/testify/require"
+	"errors"
 	"sync"
 	"testing"
 )
@@ -13,11 +13,18 @@ func TestInMemory_GetSet(t *testing.T) {
 
 	store := storage.NewInMemory()
 	err := store.Set(k, v)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("error returned: %v wanted no error", err)
+	}
 
 	readValue, err := store.Get(k)
-	require.NoError(t, err)
-	require.Equal(t, v, readValue)
+	if err != nil {
+		t.Fatalf("error returned: %v wanted no error", err)
+	}
+
+	if want := readValue; v != want {
+		t.Fatalf("invalid read value: %q, want %q", v, want)
+	}
 }
 
 func TestInMemory_Set_ValueOverwrite(t *testing.T) {
@@ -25,18 +32,30 @@ func TestInMemory_Set_ValueOverwrite(t *testing.T) {
 
 	store := storage.NewInMemory()
 	err := store.Set(k, v)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("error returned: %v wanted no error", err)
+	}
 
 	readValue, err := store.Get(k)
-	require.NoError(t, err)
-	require.Equal(t, v, readValue)
+	if err != nil {
+		t.Fatalf("error returned: %v wanted no error", err)
+	}
+	if want := readValue; v != want {
+		t.Fatalf("invalid read value: %q, want %q", v, want)
+	}
 
 	err = store.Set(k, v2)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("error returned: %v wanted no error", err)
+	}
 
 	readValue, err = store.Get(k)
-	require.NoError(t, err)
-	require.Equal(t, v2, readValue)
+	if err != nil {
+		t.Fatalf("error returned: %v wanted no error", err)
+	}
+	if want := v2; readValue != want {
+		t.Fatalf("invalid read value: %q, want %q", v, want)
+	}
 }
 
 func TestInMemory_GetSet_Concurrent(t *testing.T) {
@@ -44,21 +63,29 @@ func TestInMemory_GetSet_Concurrent(t *testing.T) {
 
 	store := storage.NewInMemory()
 	err := store.Set(k, v)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("error returned: %v wanted no error", err)
+	}
 
 	wg := sync.WaitGroup{}
 
 	write := func() {
 		defer wg.Done()
 		err := store.Set(k, v)
-		require.NoError(t, err)
+		if err != nil {
+			t.Fatalf("error returned: %v wanted no error", err)
+		}
 	}
 
 	read := func() {
 		defer wg.Done()
 		readValue, err := store.Get(k)
-		require.NoError(t, err)
-		require.Equal(t, v, readValue)
+		if err != nil {
+			t.Fatalf("error returned: %v wanted no error", err)
+		}
+		if want := readValue; v != want {
+			t.Fatalf("invalid read value: %q, want %q", v, want)
+		}
 	}
 
 	for i := 0; i < 30; i++ {
@@ -71,11 +98,14 @@ func TestInMemory_GetSet_Concurrent(t *testing.T) {
 }
 
 func TestInMemory_Get_NonExisting(t *testing.T) {
-
 	store := storage.NewInMemory()
 	v, err := store.Get("non-existing-key")
-	require.Empty(t, v)
 
-	require.ErrorIs(t, err, server.ErrNotFound)
+	if want := ""; v != want {
+		t.Fatalf("expecting nothing: %q returned", v)
+	}
 
+	if !errors.Is(err, server.ErrNotFound) {
+		t.Fatalf("incorrect error returned: %v, want %v", err, server.ErrNotFound)
+	}
 }
