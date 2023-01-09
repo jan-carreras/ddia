@@ -1,7 +1,20 @@
 # Designing Data-Intensive Applications
 
-This repository is a playground where I implement ideas from the book
-Designing Data-Intensive Applications.
+This repository is a playground where I implement ideas from the book Designing Data-Intensive Applications.
+
+## Objective
+
+Implement Redis 1.0 command set (see [`commands.md`]) for educative purposes.
+[`commands.md`](https://github.com/jan-carreras/ddia/blob/master/commands.md)
+
+
+## Design
+
+This project will implement both a Client and a Server using the [Redis Serialization Protocol].
+
+Backwards compatibility: Both the client and the server must be compatible with original Redis client/server.
+
+[Redis Serialization Protocol](https://redis.io/docs/reference/protocol-spec/)
 
 ## TODO
 
