@@ -23,7 +23,7 @@ func startServer() error {
 	log := log.New(os.Stdout, "[server] ", 0)
 	store := storage.NewInMemory()
 	handlers := server.NewHandlers(log, store)
-	s := server.New(handlers)
+	s := server.New(handlers, server.WithLogger(log))
 
 	err := s.Start(context.Background())
 	if err != nil {

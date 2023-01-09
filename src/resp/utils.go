@@ -85,7 +85,7 @@ func ignoreDelimiters(r io.Reader) error {
 func PeakOperation(r io.Reader) (io.Reader, byte, error) {
 	var operation byte
 	if err := binary.Read(r, binary.BigEndian, &operation); err != nil {
-		return r, 0, fmt.Errorf("unable to read operator: %v", err)
+		return r, 0, fmt.Errorf("unable to read operator: %w", err)
 	}
 
 	buf := &bytes.Buffer{}

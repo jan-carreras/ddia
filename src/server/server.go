@@ -10,7 +10,6 @@ import (
 	"net"
 	"strings"
 	"sync"
-	"time"
 )
 
 const (
@@ -114,26 +113,25 @@ func (s *Server) Addr() string {
 // TODO: We should return error responses if something fails
 func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 	defer func() {
-		// TODO: Do we really want to close the connection? We could let the client to do that, right?
-		/*if err := conn.Close(); err != nil {
+		if err := conn.Close(); err != nil {
 			s.logger.Printf("unable to close the connection")
-			return
 		}
-		s.logger.Printf("connection closed %s", conn.RemoteAddr().String())*/
 	}()
-	if err := conn.SetDeadline(time.Now().Add(time.Second)); err != nil {
-		return fmt.Errorf("error when setting the timeout: %w", err)
-	}
 
 	s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
+	for {
+		cmd, err := s.readCommand(conn)
+		if errors.Is(err, io.EOF) {
+			s.logger.Printf("client %s closed the connection", conn.RemoteAddr().String())
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("readCommand: %w", err)
+		}
 
-	cmd, err := s.readCommand(conn)
-	if err != nil {
-		return fmt.Errorf("readCommand: %w", err)
-	}
-
-	if err := s.processCommand(conn, cmd); err != nil {
-		return fmt.Errorf("processCommand: %w", err)
+		if err := s.processCommand(conn, cmd); err != nil {
+			return fmt.Errorf("processCommand: %w", err)
+		}
 	}
 
 	return nil
