@@ -3,7 +3,7 @@ package resp_test
 import (
 	"bytes"
 	"ddia/src/resp"
-	"github.com/stretchr/testify/require"
+	"errors"
 	"strings"
 	"testing"
 )
@@ -11,17 +11,25 @@ import (
 func TestStr_ReadFrom(t *testing.T) {
 	s := resp.Str{}
 	_, err := s.ReadFrom(strings.NewReader("$5\r\nhello\r\n"))
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("error unexpected: %v. want no error", err)
+	}
 
-	require.Equal(t, "hello", s.String())
+	if want := "hello"; s.String() != want {
+		t.Fatalf("invalid response: %q, want %q", s.String(), want)
+	}
 }
 
 func TestStr_ReadFrom_EmptyString(t *testing.T) {
 	s := resp.Str{}
 	_, err := s.ReadFrom(strings.NewReader("$0\r\n\r\n"))
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("error unexpected: %v. want no error", err)
+	}
 
-	require.Equal(t, "", s.String())
+	if want := ""; s.String() != want {
+		t.Fatalf("invalid response: %q want %q", s.String(), want)
+	}
 }
 
 func TestStr_ReadFrom_Errors(t *testing.T) {
@@ -60,34 +68,49 @@ func TestStr_ReadFrom_Errors(t *testing.T) {
 	s := resp.Str{}
 	for _, tt := range tests {
 		_, err := s.ReadFrom(strings.NewReader(tt.input))
-		require.ErrorIs(t, err, resp.ErrParsingError)
-		require.ErrorContains(t, err, tt.expectedErrContains)
+		if !errors.Is(err, resp.ErrParsingError) {
+			t.Fatalf("invalid error type: %v, want %v", err, resp.ErrParsingError)
+		}
+		if !strings.Contains(err.Error(), tt.expectedErrContains) {
+			t.Fatalf("invalid error content: %q want %q", err.Error(), tt.expectedErrContains)
+		}
 	}
-
 }
 
 func TestStr_WriteTo(t *testing.T) {
 	original := "$5\r\nhello\r\n"
 	s := resp.Str{}
 	_, err := s.ReadFrom(strings.NewReader(original))
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("error unexpected: %v. want no error", err)
+	}
 
 	buf := &bytes.Buffer{}
 	_, err = s.WriteTo(buf)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("error unexpected: %v. want no error", err)
+	}
 
-	require.Equal(t, original, buf.String())
+	if want := original; buf.String() != want {
+		t.Fatalf("invalid response: %q want %q", buf.String(), want)
+	}
 }
 
 func TestStr_EmptyString(t *testing.T) {
 	original := "$0\r\n\r\n"
 	s := resp.Str{}
 	_, err := s.ReadFrom(strings.NewReader(original))
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("error unexpected: %v. want no error", err)
+	}
 
 	buf := &bytes.Buffer{}
 	_, err = s.WriteTo(buf)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("error unexpected: %v. want no error", err)
+	}
 
-	require.Equal(t, original, buf.String())
+	if want := original; buf.String() != want {
+		t.Fatalf("invalid response: %q want %q", buf.String(), want)
+	}
 }

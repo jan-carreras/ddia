@@ -3,7 +3,6 @@ package resp_test
 import (
 	"bytes"
 	"ddia/src/resp"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 )
@@ -13,8 +12,12 @@ func TestInteger_ReadFrom_InvalidPrefix(t *testing.T) {
 
 	input := "(1234\r\n"
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.Error(t, err)
-	require.EqualValues(t, 1, c) // Read the operation
+	if err == nil {
+		t.Fatalf("expecting error, got %v", err)
+	}
+	if want := 1; int(c) != want {
+		t.Fatalf("invalid number of characters read %d, want %d", c, want)
+	}
 }
 
 func TestInteger_ReadFrom_InvalidDelimiter(t *testing.T) {
@@ -22,8 +25,12 @@ func TestInteger_ReadFrom_InvalidDelimiter(t *testing.T) {
 
 	input := ":1234\r"
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.Error(t, err)
-	require.EqualValues(t, len(input), c)
+	if err == nil {
+		t.Fatalf("expecting error, got %v", err)
+	}
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid number of characters read %d, want %d", c, want)
+	}
 }
 
 func TestInteger_ReadFrom(t *testing.T) {
@@ -32,10 +39,16 @@ func TestInteger_ReadFrom(t *testing.T) {
 	input := ":1234\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid number of characters read %d, want %d", c, want)
+	}
 
-	require.Equal(t, "1234", s.String())
+	if want := "1234"; s.String() != want {
+		t.Fatalf("invalid String parsed: %q want %q", s.String(), want)
+	}
 }
 
 func TestInteger_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
@@ -46,9 +59,15 @@ func TestInteger_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
 	input := ":" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid number of characters read %d, want %d", c, want)
+	}
+	if want := payload; s.String() != want {
+		t.Fatalf("invalid String parsed: %q want %q", s.String(), want)
+	}
 }
 
 func TestInteger_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
@@ -59,9 +78,15 @@ func TestInteger_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
 	input := ":" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid number of characters read %d, want %d", c, want)
+	}
+	if want := payload; s.String() != want {
+		t.Fatalf("invalid String parsed: %q want %q", s.String(), want)
+	}
 }
 
 func TestInteger_ReadFrom_PayloadHugeBuffer(t *testing.T) {
@@ -72,9 +97,15 @@ func TestInteger_ReadFrom_PayloadHugeBuffer(t *testing.T) {
 	input := ":" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid number of characters read %d, want %d", c, want)
+	}
+	if want := payload; s.String() != want {
+		t.Fatalf("invalid String parsed: %q want %q", s.String(), want)
+	}
 }
 
 func TestInteger_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
@@ -85,9 +116,15 @@ func TestInteger_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
 	input := ":" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid number of characters read %d, want %d", c, want)
+	}
+	if want := payload; s.String() != want {
+		t.Fatalf("invalid String parsed: %q want %q", s.String(), want)
+	}
 }
 
 func TestInteger_WriteTo(t *testing.T) {
@@ -97,8 +134,14 @@ func TestInteger_WriteTo(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	c, err := s.WriteTo(buf)
-	require.NoError(t, err)
-	require.EqualValues(t, len(expected), c)
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+	if want := len(expected); int(c) != want {
+		t.Fatalf("invalid number of characters read %d, want %d", c, want)
+	}
 
-	require.Equal(t, expected, buf.String())
+	if want := input; s.String() != want {
+		t.Fatalf("invalid String parsed: %q want %q", s.String(), want)
+	}
 }

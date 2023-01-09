@@ -5,7 +5,6 @@ import (
 	"ddia/src/client"
 	"ddia/src/server"
 	"ddia/src/storage"
-	"github.com/stretchr/testify/require"
 	"log"
 	"os"
 	"testing"
@@ -18,7 +17,10 @@ func TestStart(t *testing.T) {
 	handlers := server.NewHandlers(logger, store)
 	s := server.NewServer(logger, "localhost", 0, handlers)
 
-	require.NoError(t, s.Start(context.Background()))
+	err := s.Start(context.Background())
+	if err != nil {
+		t.Fatalf("Start faield: %v, wanted no error", err)
+	}
 
 	logger = log.New(os.Stdout, "[client] ", 0)
 	// TODO: This approach won't work if we're not adding support for reusing a connection
@@ -26,8 +28,12 @@ func TestStart(t *testing.T) {
 	cli := client.NewClient(logger, s.Addr())
 
 	rsp, err := cli.Set("hello", "world")
-	require.NoError(t, err)
-	require.Equal(t, `OK`, string(rsp))
+	if err != nil {
+		t.Fatalf("Set faield: %v, wanted no error", err)
+	}
+	if want := "OK"; string(rsp) != want {
+		t.Fatalf("invalid response: %q want %q", string(rsp), want)
+	}
 }
 
 func TestServer_Set(t *testing.T) {
@@ -37,18 +43,29 @@ func TestServer_Set(t *testing.T) {
 	handlers := server.NewHandlers(logger, store)
 	s := server.NewServer(logger, "localhost", 0, handlers)
 
-	require.NoError(t, s.Start(context.Background()))
+	err := s.Start(context.Background())
+	if err != nil {
+		t.Fatalf("Start faield: %v, wanted no error", err)
+	}
 
 	logger = log.New(os.Stdout, "[client] ", 0)
 	cli := client.NewClient(logger, s.Addr())
 
 	rsp, err := cli.Set("hello", "world")
-	require.NoError(t, err)
-	require.Equal(t, "OK", string(rsp))
+	if err != nil {
+		t.Fatalf("Set faield: %v, wanted no error", err)
+	}
+	if want := "OK"; string(rsp) != want {
+		t.Fatalf("invalid response: %q want %q", string(rsp), want)
+	}
 
 	v, err := store.Get("hello")
-	require.NoError(t, err)
-	require.Equal(t, "world", v)
+	if err != nil {
+		t.Fatalf("Set faield: %v, wanted no error", err)
+	}
+	if want := "world"; v != want {
+		t.Fatalf("invalid response: %q want %q", v, want)
+	}
 }
 
 func TestServer_Ping(t *testing.T) {
@@ -58,18 +75,30 @@ func TestServer_Ping(t *testing.T) {
 	handlers := server.NewHandlers(logger, store)
 	s := server.NewServer(logger, "localhost", 0, handlers)
 
-	require.NoError(t, s.Start(context.Background()))
+	err := s.Start(context.Background())
+	if err != nil {
+		t.Fatalf("Start faield: %v, wanted no error", err)
+	}
 
 	logger = log.New(os.Stdout, "[client] ", 0)
 	cli := client.NewClient(logger, s.Addr())
 
 	rsp, err := cli.Ping("")
-	require.NoError(t, err)
-	require.Equal(t, "PONG", string(rsp))
+	if err != nil {
+		t.Fatalf("Ping faield: %v, wanted no error", err)
+	}
+
+	if want := "PONG"; string(rsp) != want {
+		t.Fatalf("invalid response: %q want %q", string(rsp), want)
+	}
 
 	rsp, err = cli.Ping("hello world")
-	require.NoError(t, err)
-	require.Equal(t, "hello world", string(rsp))
+	if err != nil {
+		t.Fatalf("Ping faield: %v, wanted no error", err)
+	}
+	if want := "hello world"; string(rsp) != want {
+		t.Fatalf("invalid response: %q want %q", string(rsp), want)
+	}
 }
 
 func TestStart_GracefulShutdown(t *testing.T) {
@@ -79,10 +108,14 @@ func TestStart_GracefulShutdown(t *testing.T) {
 
 	s := server.NewServer(logger, "localhost", 0, handlers)
 
-	ctx := context.Background()
-
-	require.NoError(t, s.Start(ctx))
+	err := s.Start(context.Background())
+	if err != nil {
+		t.Fatalf("Start faield: %v, wanted no error", err)
+	}
 
 	time.Sleep(100 * time.Millisecond)
-	require.NoError(t, s.Stop())
+	err = s.Stop()
+	if err != nil {
+		t.Fatalf("Start faield: %v, wanted no error", err)
+	}
 }

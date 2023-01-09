@@ -3,7 +3,6 @@ package resp_test
 import (
 	"bytes"
 	"ddia/src/resp"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 )
@@ -13,8 +12,12 @@ func TestError_ReadFrom_InvalidPrefix(t *testing.T) {
 
 	input := "(OK\r\n"
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.Error(t, err)
-	require.EqualValues(t, 1, c) // Read the operation
+	if err == nil {
+		t.Fatalf("expecting error, got nil instead")
+	}
+	if want := 1; int(c) != want {
+		t.Fatalf("invalid bytes read: %d want %d", c, want)
+	}
 }
 
 func TestError_ReadFrom_InvalidDelimiter(t *testing.T) {
@@ -22,8 +25,13 @@ func TestError_ReadFrom_InvalidDelimiter(t *testing.T) {
 
 	input := "-ERR unknown command 'helloworld'\r"
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.Error(t, err)
-	require.EqualValues(t, len(input), c)
+	if err == nil {
+		t.Fatalf("expecting error, got nil instead")
+	}
+
+	if len(input) != int(c) {
+		t.Fatalf("invalid readCount %d, want %d", c, len(input))
+	}
 }
 
 func TestError_ReadFrom(t *testing.T) {
@@ -32,10 +40,18 @@ func TestError_ReadFrom(t *testing.T) {
 	input := "-WRONGTYPE Operation against a key holding the wrong kind of value\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
+	if err != nil {
+		t.Fatalf("expecing not error, got %v", err)
+	}
 
-	require.Equal(t, "WRONGTYPE Operation against a key holding the wrong kind of value", s.String())
+	if len(input) != int(c) {
+		t.Fatalf("invalid readCount %d, want %d", c, len(input))
+	}
+
+	want := "WRONGTYPE Operation against a key holding the wrong kind of value"
+	if s.String() != want {
+		t.Fatalf("invalid response: %q, want %q", s.String(), want)
+	}
 }
 
 func TestError_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
@@ -46,9 +62,15 @@ func TestError_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
 	input := "-" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecing not error, got %v", err)
+	}
+	if int(c) != len(input) {
+		t.Fatalf("different lengths: %d want %d", c, len(input))
+	}
+	if s.String() != payload {
+		t.Fatalf("Strings() not equal %q, want %q", s.String(), payload)
+	}
 }
 
 func TestError_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
@@ -59,9 +81,15 @@ func TestError_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
 	input := "-" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecing not error, got %v", err)
+	}
+	if int(c) != len(input) {
+		t.Fatalf("different lengths: %d want %d", c, len(input))
+	}
+	if s.String() != payload {
+		t.Fatalf("Strings() not equal %q, want %q", s.String(), payload)
+	}
 }
 
 func TestError_ReadFrom_PayloadHugeBuffer(t *testing.T) {
@@ -72,9 +100,15 @@ func TestError_ReadFrom_PayloadHugeBuffer(t *testing.T) {
 	input := "-" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecing not error, got %v", err)
+	}
+	if int(c) != len(input) {
+		t.Fatalf("different lengths: %d want %d", c, len(input))
+	}
+	if s.String() != payload {
+		t.Fatalf("Strings() not equal %q, want %q", s.String(), payload)
+	}
 }
 
 func TestError_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
@@ -85,9 +119,15 @@ func TestError_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
 	input := "-" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecing not error, got %v", err)
+	}
+	if int(c) != len(input) {
+		t.Fatalf("different lengths: %d want %d", c, len(input))
+	}
+	if s.String() != payload {
+		t.Fatalf("Strings() not equal %q, want %q", s.String(), payload)
+	}
 }
 
 func TestError_WriteTo(t *testing.T) {
@@ -97,8 +137,13 @@ func TestError_WriteTo(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	c, err := s.WriteTo(buf)
-	require.NoError(t, err)
-	require.EqualValues(t, len(expected), c)
-
-	require.Equal(t, expected, buf.String())
+	if err != nil {
+		t.Fatalf("expecing not error, got %v", err)
+	}
+	if int(c) != len(expected) {
+		t.Fatalf("different lengths: %d want %d", c, len(expected))
+	}
+	if buf.String() != expected {
+		t.Fatalf("Strings() not equal %q, want %q", s.String(), expected)
+	}
 }

@@ -3,7 +3,6 @@ package resp_test
 import (
 	"bytes"
 	"ddia/src/resp"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 )
@@ -15,8 +14,13 @@ func TestSimpleString_ReadFrom_InvalidPrefix(t *testing.T) {
 
 	input := "(OK\r\n"
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.Error(t, err)
-	require.EqualValues(t, 1, c) // Read the operation
+	if err == nil {
+		t.Fatalf("expecting error, got no error instead")
+	}
+
+	if want := 1; int(c) != want {
+		t.Fatalf("invalid readCount: %d, want %d", c, want)
+	}
 }
 
 func TestSimpleString_ReadFrom_InvalidDelimiter(t *testing.T) {
@@ -24,8 +28,12 @@ func TestSimpleString_ReadFrom_InvalidDelimiter(t *testing.T) {
 
 	input := "+OK\r"
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.Error(t, err)
-	require.EqualValues(t, len(input), c)
+	if err == nil {
+		t.Fatalf("expecting error, got no error instead")
+	}
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid readCount: %d, want %d", c, want)
+	}
 }
 
 func TestSimpleString_ReadFrom(t *testing.T) {
@@ -34,10 +42,16 @@ func TestSimpleString_ReadFrom(t *testing.T) {
 	input := "+OK\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid readCount: %d, want %d", c, want)
+	}
 
-	require.Equal(t, "OK", s.String())
+	if want := "OK"; s.String() != want {
+		t.Fatalf("invalid response: %q, want %q", s.String(), want)
+	}
 }
 
 func TestSimpleString_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
@@ -48,9 +62,15 @@ func TestSimpleString_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
 	input := "+" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid readCount: %d, want %d", c, want)
+	}
+	if want := payload; s.String() != want {
+		t.Fatalf("invalid response: %q, want %q", s.String(), want)
+	}
 }
 
 func TestSimpleString_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
@@ -61,9 +81,15 @@ func TestSimpleString_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
 	input := "+" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid readCount: %d, want %d", c, want)
+	}
+	if want := payload; s.String() != want {
+		t.Fatalf("invalid response: %q, want %q", s.String(), want)
+	}
 }
 
 func TestSimpleString_ReadFrom_PayloadHugeBuffer(t *testing.T) {
@@ -74,9 +100,16 @@ func TestSimpleString_ReadFrom_PayloadHugeBuffer(t *testing.T) {
 	input := "+" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid readCount: %d, want %d", c, want)
+	}
+	if want := payload; s.String() != want {
+		t.Fatalf("invalid response: %q, want %q", s.String(), want)
+	}
 }
 
 func TestSimpleString_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
@@ -87,9 +120,16 @@ func TestSimpleString_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
 	input := "+" + payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
-	require.NoError(t, err)
-	require.EqualValues(t, len(input), c)
-	require.Equal(t, payload, s.String())
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
+
+	if want := len(input); int(c) != want {
+		t.Fatalf("invalid readCount: %d, want %d", c, want)
+	}
+	if want := payload; s.String() != want {
+		t.Fatalf("invalid response: %q, want %q", s.String(), want)
+	}
 }
 
 func TestSimpleString_WriteTo(t *testing.T) {
@@ -99,8 +139,14 @@ func TestSimpleString_WriteTo(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	c, err := s.WriteTo(buf)
-	require.NoError(t, err)
-	require.EqualValues(t, len(expected), c)
+	if err != nil {
+		t.Fatalf("expecting no error, got %v", err)
+	}
 
-	require.Equal(t, expected, buf.String())
+	if want := len(expected); int(c) != want {
+		t.Fatalf("invalid readCount: %d, want %d", c, want)
+	}
+	if want := expected; buf.String() != want {
+		t.Fatalf("invalid response: %q, want %q", s.String(), want)
+	}
 }
