@@ -10,5 +10,10 @@
         <option value="reformat" />
       </set>
     </option>
+    <option name="inclusions">
+      <set>
+        <option value=".*\.go" />
+      </set>
+    </option>
   </component>
 </project>
