@@ -105,6 +105,156 @@ func (h *Handlers) Ping(conn net.Conn, cmd []string) error {
 	return nil
 }
 
+// IncrBy increments the number stored at key by increment.
+//
+//	INCRBY key increment
+//
+// More: https://redis.io/commands/incrby/
+func (h *Handlers) IncrBy(conn net.Conn, cmd []string) error {
+	if len(cmd) != 3 {
+		err := resp.NewErrorWrongArguments(cmd[0])
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("on invalid number of arguments: %w", err)
+		}
+		return nil
+	}
+
+	key, value := cmd[1], cmd[2]
+
+	v, err := strconv.Atoi(value)
+	if err != nil {
+		err := resp.NewError("ERR value is not an integer or out of range")
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("on invalid number of arguments: %w", err)
+		}
+		return nil
+	}
+
+	newV, err := h.storage.IncrementBy(key, v)
+	if errors.Is(err, ErrValueNotInt) || errors.Is(err, ErrWrongKind) {
+		err := resp.NewError("ERR value is not an integer or out of range")
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("on invalid number of arguments: %w", err)
+		}
+		return nil
+	}
+
+	ok := resp.NewSimpleString(newV)
+	if _, err := ok.WriteTo(conn); err != nil {
+		h.logger.Printf("unable to write: %v", err)
+	}
+
+	return nil
+}
+
+// Incr increments the number stored at key by one.
+//
+//	INCR key
+//
+// More: https://redis.io/commands/incr/
+func (h *Handlers) Incr(conn net.Conn, cmd []string) error {
+	if len(cmd) != 2 {
+		err := resp.NewErrorWrongArguments(cmd[0])
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("on invalid number of arguments: %w", err)
+		}
+		return nil
+	}
+
+	key := cmd[1]
+
+	newV, err := h.storage.Increment(key)
+	if errors.Is(err, ErrValueNotInt) || errors.Is(err, ErrWrongKind) {
+		err := resp.NewError("ERR value is not an integer or out of range")
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("on invalid number of arguments: %w", err)
+		}
+		return nil
+	}
+
+	ok := resp.NewSimpleString(newV)
+	if _, err := ok.WriteTo(conn); err != nil {
+		h.logger.Printf("unable to write: %v", err)
+	}
+
+	return nil
+}
+
+// DecrBy decrements the number stored at key by decrement.
+//
+//	DECRBY key decrement
+//
+// More: https://redis.io/commands/decrby/
+func (h *Handlers) DecrBy(conn net.Conn, cmd []string) error {
+	if len(cmd) != 3 {
+		err := resp.NewErrorWrongArguments(cmd[0])
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("on invalid number of arguments: %w", err)
+		}
+		return nil
+	}
+
+	key, value := cmd[1], cmd[2]
+
+	v, err := strconv.Atoi(value)
+	if err != nil {
+		err := resp.NewError("ERR value is not an integer or out of range")
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("on invalid number of arguments: %w", err)
+		}
+		return nil
+	}
+
+	newV, err := h.storage.DecrementBy(key, v)
+	if errors.Is(err, ErrValueNotInt) || errors.Is(err, ErrWrongKind) {
+		err := resp.NewError("ERR value is not an integer or out of range")
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("on invalid number of arguments: %w", err)
+		}
+		return nil
+	}
+
+	ok := resp.NewSimpleString(newV)
+	if _, err := ok.WriteTo(conn); err != nil {
+		h.logger.Printf("unable to write: %v", err)
+	}
+
+	return nil
+}
+
+// Decr decrements the number stored at key by one.
+//
+//	DECR key
+//
+// More: https://redis.io/commands/decr/
+func (h *Handlers) Decr(conn net.Conn, cmd []string) error {
+	if len(cmd) != 2 {
+		err := resp.NewErrorWrongArguments(cmd[0])
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("on invalid number of arguments: %w", err)
+		}
+		return nil
+	}
+
+	key := cmd[1]
+
+	newV, err := h.storage.Decrement(key)
+	if errors.Is(err, ErrValueNotInt) || errors.Is(err, ErrWrongKind) {
+		err := resp.NewError("ERR value is not an integer or out of range")
+		if _, err := err.WriteTo(conn); err != nil {
+			return fmt.Errorf("on invalid number of arguments: %w", err)
+		}
+		return nil
+	}
+
+	ok := resp.NewSimpleString(newV)
+	if _, err := ok.WriteTo(conn); err != nil {
+		h.logger.Printf("unable to write: %v", err)
+	}
+
+	return nil
+}
+
 // DBSize : Return the number of keys in the selected database
 func (h *Handlers) DBSize(conn net.Conn, cmd []string) error {
 	size := resp.NewInteger(strconv.Itoa(h.storage.Size()))

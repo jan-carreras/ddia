@@ -32,4 +32,12 @@ const (
 	DBSize = "DBSIZE"
 	// Del command
 	Del = "DEL"
+	// Incr command
+	Incr = "INCR"
+	// IncrBy command
+	IncrBy = "INCRBY"
+	// Decr command
+	Decr = "DECR"
+	// DecrBy command
+	DecrBy = "DECRBY"
 )

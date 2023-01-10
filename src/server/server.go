@@ -200,6 +200,22 @@ func (s *Server) processCommand(conn net.Conn, cmd []string) error {
 		if err := s.handlers.Del(conn, cmd); err != nil {
 			return fmt.Errorf("handlers.Del: %w", err)
 		}
+	case resp.Incr:
+		if err := s.handlers.Incr(conn, cmd); err != nil {
+			return fmt.Errorf("handlers.Incr: %w", err)
+		}
+	case resp.IncrBy:
+		if err := s.handlers.IncrBy(conn, cmd); err != nil {
+			return fmt.Errorf("handlers.IncrBy: %w", err)
+		}
+	case resp.Decr:
+		if err := s.handlers.Decr(conn, cmd); err != nil {
+			return fmt.Errorf("handlers.Incr: %w", err)
+		}
+	case resp.DecrBy:
+		if err := s.handlers.DecrBy(conn, cmd); err != nil {
+			return fmt.Errorf("handlers.IncrBy: %w", err)
+		}
 	default:
 		if err := s.handlers.UnknownCommand(conn, cmd[0]); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)

@@ -14,5 +14,25 @@
   {
     "name": "ping",
     "status": "implemented"
+  },
+  {
+    "name": "getset",
+    "status": "won't-do"
+  },
+  {
+    "name": "incr",
+    "status": "implemented"
+  },
+  {
+    "name": "incrby",
+    "status": "implemented"
+  },
+  {
+    "name": "decr",
+    "status": "implemented"
+  },
+  {
+    "name": "decrby",
+    "status": "implemented"
   }
 ]

@@ -81,7 +81,7 @@ func TestInMemory_GetSet_Concurrent(t *testing.T) {
 		defer wg.Done()
 		readValue, err := store.Get(k)
 		if err != nil {
-			t.Fatalf("error returned: %v wanted no error", err)
+			t.Fatalf("error returned: %q wanted no error", err.Error())
 		}
 		if want := readValue; v != want {
 			t.Fatalf("invalid read value: %q, want %q", v, want)
@@ -98,6 +98,58 @@ func TestInMemory_GetSet_Concurrent(t *testing.T) {
 	wg.Wait()
 }
 
+func TestIncrementBy(t *testing.T) {
+	store := storage.NewInMemory()
+	v, err := store.IncrementBy("visits", 10)
+	if err != nil {
+		t.Fatalf("expeced no error: %q", err.Error())
+	}
+
+	if want := "10"; v != want {
+		t.Fatalf("invalid count: %s want %s", v, want)
+	}
+
+	_, _ = store.IncrementBy("visits", 20) // 30
+	v, _ = store.IncrementBy("visits", -5) // 25
+
+	if want := "25"; v != want {
+		t.Fatalf("invalid count: %s want %s", v, want)
+	}
+}
+
+func TestIncrementOperators(t *testing.T) {
+	store := storage.NewInMemory()
+	v, err := store.Increment("visits")
+	if err != nil {
+		t.Fatalf("expeced no error: %q", err.Error())
+	}
+
+	if want := "1"; v != want {
+		t.Fatalf("invalid count: %s want %s", v, want)
+	}
+
+	_, _ = store.Increment("visits") // 2
+	_, _ = store.Increment("visits") // 3
+	v, _ = store.Increment("visits") // 4
+
+	if want := "4"; v != want {
+		t.Fatalf("invalid count: %s want %s", v, want)
+	}
+
+	_, _ = store.Decrement("visits") // 3
+	v, _ = store.Decrement("visits") // 2
+
+	if want := "2"; v != want {
+		t.Fatalf("invalid count: %s want %s", v, want)
+	}
+
+	v, _ = store.DecrementBy("visits", 4) // -2
+
+	if want := "-2"; v != want {
+		t.Fatalf("invalid count: %s want %s", v, want)
+	}
+}
+
 func TestInMemory_Get_NonExisting(t *testing.T) {
 	store := storage.NewInMemory()
 	v, err := store.Get("non-existing-key")
@@ -107,6 +159,6 @@ func TestInMemory_Get_NonExisting(t *testing.T) {
 	}
 
 	if !errors.Is(err, server.ErrNotFound) {
-		t.Fatalf("incorrect error returned: %v, want %v", err, server.ErrNotFound)
+		t.Fatalf("incorrect error returned: %q, want %q", err.Error(), server.ErrNotFound.Error())
 	}
 }

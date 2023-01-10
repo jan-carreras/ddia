@@ -18,12 +18,12 @@
 		   shutdown: Synchronously save the dataset to disk and then shut down the server
 		   slaveof: Make the server a replica of another instance, or promote it as master.
 	STRING
-		   decr: Decrement the integer value of a key by one
-		   decrby: Decrement the integer value of a key by the given number
+		✅ decr: Decrement the integer value of a key by one
+		✅ decrby: Decrement the integer value of a key by the given number
 		✅ get: Get the value of a key
-		   getset: Set the string value of a key and return its old value
-		   incr: Increment the integer value of a key by one
-		   incrby: Increment the integer value of a key by the given amount
+		🚫 getset: Set the string value of a key and return its old value
+		✅ incr: Increment the integer value of a key by one
+		✅ incrby: Increment the integer value of a key by the given amount
 		   mget: Get the values of all the given keys
 		✅ set: Set the string value of a key
 		   setnx: Set the value of a key, only if the key does not exist

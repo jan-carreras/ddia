@@ -15,6 +15,11 @@ func NewError(string string) *Error {
 	return &Error{string: string}
 }
 
+// NewErrorWrongArguments creates a wrong number of arguments error, with the given command
+func NewErrorWrongArguments(cmd string) *Error {
+	return NewError(fmt.Sprintf("ERR wrong number of arguments for '%s' command", cmd))
+}
+
 // ReadFrom reads from the Reader and loads the Error object
 // Example: "+OK\r\n"
 func (s *Error) ReadFrom(r io.Reader) (readCount int64, err error) {

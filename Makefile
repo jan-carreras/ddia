@@ -12,7 +12,7 @@ fmt: ## Formats project
 	go fmt ./...
 
 .PHONY: lint
-lint:
+lint: ## Run the linter
 	golangci-lint run
 
 .PHONY: fmt
