@@ -32,6 +32,4 @@ Backwards compatibility: Both the client and the server must be compatible with 
 
 ## Commands
 
-* [x] Get
-* [x] Set
-* [x] Ping
+See commands.md to know what commands have been implemented and what's the progress.
