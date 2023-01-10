@@ -1,0 +1,18 @@
+[
+  {
+    "name": "get",
+    "status": "implemented"
+  },
+  {
+    "name": "set",
+    "status": "implemented"
+  },
+  {
+    "name": "echo",
+    "status": "implemented"
+  },
+  {
+    "name": "ping",
+    "status": "implemented"
+  }
+]
