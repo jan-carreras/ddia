@@ -3,7 +3,7 @@ MultiType support on Storage
 
 # Purpose
 
-Add support to multiple datatypes on the Storage layer.
+Add support to multiple data types on the Storage layer.
 
 # Background
 
@@ -23,7 +23,8 @@ type Storage interface {
 }
 ```
 
-Right know all operation are [Strings](https://redis.io/docs/data-types/strings/) data types, thus the in-memory implementation has a map and a mutex as storage:
+Right now all operation are [Strings](https://redis.io/docs/data-types/strings/) data types, thus the in-memory
+implementation has a map and a mutex as storage:
 
 ```go
 // InMemory is the simplest storage possible, storing everything in a Go map
@@ -39,16 +40,16 @@ type InMemory struct {
 > Goals, non-goals and future goals 
 
 ## Goals 
-* The goal is to be able to support datatypes like [Lists](https://redis.io/docs/data-types/lists/), [Sets](https://redis.io/docs/data-types/sets/), [Hashes](https://redis.io/docs/data-types/hashes/).
+* The goal is to be able to support data types like [Lists](https://redis.io/docs/data-types/lists/), [Sets](https://redis.io/docs/data-types/sets/), [Hashes](https://redis.io/docs/data-types/hashes/).
 * Do it in a way that it's scalable and easy to add new data types
 * Do it in an efficient way
 
 
-Most Redis operations are type-specific, which means that can not be used on other datatypes. The storage must be type aware.
+Most Redis operations are type-specific, which means that can not be used on other data types. The storage must be type aware.
 
 ## Non Goals
 
-* Implement all those datatypes
+* Implement all those data types
 
 ## Future goals
 
@@ -80,12 +81,12 @@ and store serialized representations of each datatype: Lists, Sets, Hashes, etc.
 ### Cons
 
 * Not efficient: For hashmaps we need to deserialize the entire object to find a specific key. 🚫
-* Inserts for most datatypes (eg: SortedSets) would mean to deserialize and serialize again. 🚫
+* Inserts for most data types (eg: SortedSets) would mean to deserialize and serialize again. 🚫
 
 
 ## Option 2: Types
 
-Instad of storing strings, we can store a generic datatype that includes the type. Since `type` is a reserved word in Golang, we should use another word instead.
+Instead of storing strings, we can store a generic datatype that includes the type. Since `type` is a reserved word in Golang, we should use another word instead.
 
 ### Atom and Kind
 
@@ -192,13 +193,13 @@ if !ok {
 
 ##### Option 2.2: Empty interface + Storage receives Atom objects
 
-Redis implements it this way: the storage receives the equivalent of `atom` objects and have no oppinion on them. When parsing the client's command it generates automatically a `atom` and always passes a pointer to it thru the entire stack.
+Redis implements it this way: the storage receives the equivalent of `atom` objects and have no opinion on them. When parsing the client's command it generates automatically a `atom` and always passes a pointer to it thru the entire stack.
 
 It provides no abstraction between layers, but it might be the most efficient way to implement it.
 
 * Advantages: Seems to be the most performant and ensures minimum memory copies
-* Disadvantages: Breakes the "storage abstraction", and the main part of the application needs to deal with empty interfaces as a datatype. I would try to avoid it for now.
-* Conlusion: I think I'm going to be end up migrating to this as a way to improve performance, but I'll delay it for now
+* Disadvantages: Breaks the "storage abstraction", and the main part of the application needs to deal with empty interfaces as a datatype. I would try to avoid it for now.
+* Conclusion: I think I'm going to be end up migrating to this as a way to improve performance, but I'll delay it for now
 
 ##### Option 2.3: Embed all possible types in the `atom`
 
@@ -224,11 +225,11 @@ type atom struct {
 
 * Advantages: Type system will work
 * Disadvantages: not scalable, a lot of wasted memory for unused pointers for each key, might still have nil pointer errors
-* Conclusion:  🚫 discarted
+* Conclusion:  🚫 discarded
 
 
 
-# Design choosen
+# Design chosen
 
 The best option is to implement `Option 2: Types` as described in the previous section, with using Empty Interfaces (`Option 2.1: Empty interface`).
 
