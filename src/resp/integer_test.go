@@ -128,7 +128,7 @@ func TestInteger_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
 }
 
 func TestInteger_WriteTo(t *testing.T) {
-	input := "42"
+	input := 42
 	expected := ":42\r\n"
 	s := resp.NewInteger(input)
 
@@ -141,7 +141,7 @@ func TestInteger_WriteTo(t *testing.T) {
 		t.Fatalf("invalid number of characters read %d, want %d", c, want)
 	}
 
-	if want := input; s.String() != want {
+	if want := "42"; s.String() != want {
 		t.Fatalf("invalid String parsed: %q want %q", s.String(), want)
 	}
 }

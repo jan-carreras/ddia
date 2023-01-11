@@ -3,6 +3,7 @@ package resp
 import (
 	"fmt"
 	"io"
+	"strconv"
 )
 
 var _ dataType = (*Integer)(nil)
@@ -13,8 +14,8 @@ type Integer struct {
 }
 
 // NewInteger returns a Integer datatype
-func NewInteger(string string) *Integer {
-	return &Integer{string: string}
+func NewInteger(i int) *Integer {
+	return &Integer{string: strconv.Itoa(i)}
 }
 
 // ReadFrom reads from the Reader and loads the Integer object

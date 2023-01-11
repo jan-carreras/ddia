@@ -175,7 +175,7 @@ func (h *Handlers) DBSize(c *client) error {
 		return nil
 	}
 
-	return c.writeResponse(resp.NewInteger(strconv.Itoa(h.storage.Size())))
+	return c.writeResponse(resp.NewInteger(h.storage.Size()))
 }
 
 // Del removes the specified keys. A key is ignored if it does not exist.
@@ -202,7 +202,7 @@ func (h *Handlers) Del(c *client) error {
 		}
 	}
 
-	return c.writeResponse(resp.NewInteger(strconv.Itoa(countDeleted)))
+	return c.writeResponse(resp.NewInteger(countDeleted))
 }
 
 // Echo returns message
