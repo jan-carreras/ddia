@@ -1,121 +1,138 @@
 package server_test
 
 import (
-	"context"
-	"ddia/src/client"
-	"ddia/src/server"
-	"ddia/src/storage"
-	"ddia/testing/log"
+	"fmt"
 	"testing"
 	"time"
 )
 
-func testServer() *server.Server {
-	logger := log.ServerLogger()
-	handlers := server.NewHandlers(logger)
-	return server.New(handlers, serverOptions()...)
-}
+func TestServer_UnknownCommand(t *testing.T) {
+	req := makeReq(t)
 
-func serverOptions() []server.Option {
-	logger := log.ServerLogger()
-	dbs := make([]server.Storage, 16)
-	for i := 0; i < len(dbs); i++ {
-		dbs[i] = storage.NewInMemory()
-	}
-
-	return []server.Option{
-		server.WithLogger(logger),
-		server.WithRandomPort(),
-		server.WithDBs(dbs),
+	rsp, want := req("foo"), "-ERR unknown command 'foo'\r\n"
+	if rsp != want {
+		t.Fatalf("missmatch: %q, want %q", rsp, want)
 	}
 }
 
-func TestStart(t *testing.T) {
-	s := testServer()
+func TestServer_IncrDecrOperators(t *testing.T) {
+	req := makeReq(t)
 
-	err := s.Start(context.Background())
-	if err != nil {
-		t.Fatalf("Start faield: %v, wanted no error", err)
+	assert := func(n int) {
+		rsp := req("get key")
+		want := fmt.Sprintf("+%d\r\n", n)
+		if rsp != want {
+			t.Fatalf("missmatch: %q, want %q", rsp, want)
+		}
 	}
 
-	// TODO: This approach won't work if we're not adding support for reusing a connection
-	// 	We would need to pass the s.Addr inside and manage the connection there (which makes total sense)
-	cli := client.NewClient(log.ClientLogger(), s.Addr())
+	req("incr key")
+	assert(1)
 
-	rsp, err := cli.Set("hello", "world")
-	if err != nil {
-		t.Fatalf("Set faield: %v, wanted no error", err)
+	req("decr key")
+	assert(0)
+
+	req("incrby key 11")
+	assert(11)
+
+	req("decrby key 10")
+	assert(1)
+}
+
+func TestServer_SetGetDel(t *testing.T) {
+	req := makeReq(t)
+
+	rsp, want := req("set hello world"), "+OK\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
-	if want := "OK"; string(rsp) != want {
-		t.Fatalf("invalid response: %q want %q", string(rsp), want)
+
+	rsp, want = req("get hello"), "+world\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+
+	rsp, want = req("del hello"), ":1\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+
+	rsp, want = req("get hello"), "+\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }
 
-func TestServer_Set(t *testing.T) {
-	s := testServer()
-	err := s.Start(context.Background())
-	if err != nil {
-		t.Fatalf("Start faield: %v, wanted no error", err)
+func TestServer_PingEcho(t *testing.T) {
+	req := makeReq(t)
+
+	rsp, want := req("ping"), "+PONG\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	cli := client.NewClient(log.ClientLogger(), s.Addr())
-
-	rsp, err := cli.Set("hello", "world")
-	if err != nil {
-		t.Fatalf("Set faield: %v, wanted no error", err)
-	}
-	if want := "OK"; string(rsp) != want {
-		t.Fatalf("invalid response: %q want %q", string(rsp), want)
+	rsp, want = req("ping hello world"), "+hello world\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	v, err := cli.Get("hello")
-	if err != nil {
-		t.Fatalf("Set faield: %v, wanted no error", err)
-	}
-	if want := "world"; string(v) != want {
-		t.Fatalf("invalid response: %q want %q", v, want)
+	rsp, want = req("echo hello awesome world"), "+hello awesome world\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }
 
-func TestServer_Ping(t *testing.T) {
-	s := testServer()
+func TestServer_Select(t *testing.T) {
+	req := makeReq(t)
 
-	err := s.Start(context.Background())
-	if err != nil {
-		t.Fatalf("Start faield: %v, wanted no error", err)
+	// Database 0
+	req("set hello world")
+
+	// Database 1
+	req("select 1")
+	rsp, want := req("get hello"), "+\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+	req("set hello there")
+	rsp, want = req("get hello"), "+there\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	cli := client.NewClient(log.ClientLogger(), s.Addr())
+	// Back to database 0 again
+	req("select 0")
+	rsp, want = req("get hello"), "+world\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+}
 
-	rsp, err := cli.Ping("")
-	if err != nil {
-		t.Fatalf("Ping faield: %v, wanted no error", err)
+func TestServer_DBSize(t *testing.T) {
+	req := makeReq(t)
+
+	rsp, want := req("dbsize"), ":0\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	if want := "PONG"; string(rsp) != want {
-		t.Fatalf("invalid response: %q want %q", string(rsp), want)
-	}
+	req("set one 1")
+	req("set two 2")
+	req("set three 3")
 
-	rsp, err = cli.Ping("hello world")
-	if err != nil {
-		t.Fatalf("Ping faield: %v, wanted no error", err)
-	}
-	if want := "hello world"; string(rsp) != want {
-		t.Fatalf("invalid response: %q want %q", string(rsp), want)
+	rsp, want = req("dbsize"), ":3\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }
 
 func TestStart_GracefulShutdown(t *testing.T) {
-	s := testServer()
+	s := testServer(t)
 
-	err := s.Start(context.Background())
-	if err != nil {
-		t.Fatalf("Start faield: %v, wanted no error", err)
-	}
+	time.Sleep(10 * time.Millisecond)
 
-	time.Sleep(100 * time.Millisecond)
-	err = s.Stop()
+	err := s.Stop()
 	if err != nil {
-		t.Fatalf("Start faield: %v, wanted no error", err)
+		t.Fatalf("Stop faield: %v, wanted no error", err)
 	}
 }

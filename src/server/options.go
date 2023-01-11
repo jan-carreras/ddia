@@ -35,6 +35,7 @@ func (d dbs) apply(opts *options) {
 	opts.dbs = d
 }
 
+// WithDBs sets the databases
 func WithDBs(db []Storage) Option {
 	return dbs(db)
 

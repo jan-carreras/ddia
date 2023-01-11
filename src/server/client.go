@@ -3,12 +3,11 @@ package server
 import (
 	"fmt"
 	"io"
-	"net"
 )
 
 type client struct {
 	// conn is the TCP socket that connects with the client
-	conn net.Conn
+	conn io.ReadWriteCloser
 	// args are the commands being sent by the network
 	args []string
 	// dbIdx is the ID of the database where the client is connected to. Default to DB 0

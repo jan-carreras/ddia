@@ -24,7 +24,8 @@ type Server struct {
 	addr     string
 	listener net.Listener
 	// quit signals if we want to keep listening for new incoming requests or not
-	quit chan interface{}
+	quit     chan interface{}
+	quitOnce sync.Once
 	// wg is used for the Listen go routine, and for the goroutines processing each request
 	wg       sync.WaitGroup
 	handlers *Handlers
@@ -93,6 +94,7 @@ func (s *Server) serve(ctx context.Context) {
 		s.wg.Add(1)
 		go func() {
 			defer s.wg.Done()
+			s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
 			if err := s.handleRequest(ctx, conn); err != nil {
 				s.logger.Printf("[ERROR] handleRequest: %v\n", err)
 			}
@@ -102,19 +104,23 @@ func (s *Server) serve(ctx context.Context) {
 
 // Stop stops the server
 func (s *Server) Stop() error {
-	close(s.quit)
+	s.quitOnce.Do(func() {
+		close(s.quit)
+	})
 	err := s.listener.Close() // Close listener, thus new connections
 	s.wg.Wait()               // Waiting for clients to finish
 	return err
 }
 
-// Addr returns the address where the server is listening (for example, "192.0.2.1:25", "[2001:db8::1]:80")
+// Addr returns the address where the server is listening
+//
+//	Example: "192.0.2.1:25", "[2001:db8::1]:80"
 func (s *Server) Addr() string {
 	return s.addr
 }
 
 // TODO: We should return error responses if something fails
-func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
+func (s *Server) handleRequest(_ context.Context, conn io.ReadWriteCloser) error {
 	defer func() {
 		if err := conn.Close(); err != nil {
 			s.logger.Printf("unable to close server side connection")
@@ -124,11 +130,10 @@ func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 	// Initialize a client object using the connection and the default DB
 	c := &client{conn: conn, db: s.options.dbs[0]}
 
-	s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
 	for {
 		args, err := s.readCommand(conn)
 		if errors.Is(err, io.EOF) {
-			s.logger.Printf("client %s closed the connection", conn.RemoteAddr().String())
+			//s.logger.Printf("client %s closed the connection", conn.RemoteAddr().String())
 			return nil
 		} else if err != nil {
 			return fmt.Errorf("readCommand: %w", err)
@@ -137,13 +142,13 @@ func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 		// Load the arguments to the client, to be able to process the request
 		c.args = args
 
-		if err := s.processClientRequest(c); err != nil {
+		if err := s.processCommand(c); err != nil {
 			return fmt.Errorf("processCommand: %w", err)
 		}
 	}
 }
 
-func (s *Server) readCommand(conn net.Conn) ([]string, error) {
+func (s *Server) readCommand(conn io.Reader) ([]string, error) {
 	reader, operation, err := resp.PeakOperation(conn)
 	if err != nil {
 		return nil, fmt.Errorf("unable to peak operation: %w", err)
@@ -176,17 +181,13 @@ func (s *Server) parseBulkString(conn io.Reader) ([]string, error) {
 	return b.Strings(), nil
 }
 
-func (s *Server) processClientRequest(c *client) error {
-	err := s.processCommand(c)
+func (s *Server) processCommand(c *client) (err error) {
+	defer func() {
+		// Processes all well known errors and returns a response to the client
+		// accordingly
+		err = handleWellKnownErrors(c, err)
+	}()
 
-	if err := handleWellKnownErrors(c, err); err != nil {
-		return fmt.Errorf("processCommand(%q): %w", c.command(), err)
-	}
-
-	return nil
-}
-
-func (s *Server) processCommand(c *client) error {
 	switch strings.ToUpper(c.command()) {
 	case "":
 		return errors.New("invalid command: length 0")
