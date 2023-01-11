@@ -22,14 +22,21 @@ const (
 const readBufferSize = 512 // bytes
 
 const (
+	/* CONNECTION */
+
 	// Ping command
 	Ping = "PING"
+	// Echo command
+	Echo = "ECHO"
+	// Quit command
+	Quit = "QUIT"
+
+	/* STRING */
+
 	// Get command
 	Get = "GET"
 	// Set command
 	Set = "SET"
-	// DBSize command
-	DBSize = "DBSIZE"
 	// Del command
 	Del = "DEL"
 	// Incr command
@@ -40,4 +47,9 @@ const (
 	Decr = "DECR"
 	// DecrBy command
 	DecrBy = "DECRBY"
+
+	/* GENERIC */
+
+	// DBSize command
+	DBSize = "DBSIZE"
 )

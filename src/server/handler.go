@@ -205,6 +205,28 @@ func (h *Handlers) Del(c *client) error {
 	return c.writeResponse(resp.NewInteger(strconv.Itoa(countDeleted)))
 }
 
+// Echo returns message
+//
+//	redis> ECHO "Hello World!"
+//	"Hello World!"
+//
+// More: https://redis.io/commands/echo/
+func (h *Handlers) Echo(c *client) error {
+	if len(c.args) <= 1 {
+		return ErrWrongNumberArguments
+	}
+
+	return c.writeResponse(resp.NewSimpleString(strings.Join(c.args[1:], " ")))
+}
+
+// Quit asks the server to close the connection. The connection is closed as soon as all pending replies have been written to the client.
+// More: https://redis.io/commands/quit/
+func (h *Handlers) Quit(c *client) error {
+	// TODO: Not quite it. We might we writing a response somewhere else and we
+	// should wait until we've finishing writing
+	return c.conn.Close()
+}
+
 // UnknownCommand returns an error when the command is unknown
 func (h *Handlers) UnknownCommand(c *client) error {
 	err := resp.NewError(fmt.Sprintf("ERR unknown command '%s'", c.command()))

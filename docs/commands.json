@@ -34,5 +34,13 @@
   {
     "name": "decrby",
     "status": "implemented"
+  },
+  {
+    "name": "del",
+    "status": "implemented"
+  },
+  {
+    "name": "quit",
+    "status": "partially-implemented"
   }
 ]

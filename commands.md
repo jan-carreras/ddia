@@ -3,7 +3,7 @@
 		   auth: Authenticate to the server
 		✅ echo: Echo the given string
 		✅ ping: Ping the server
-		   quit: Close the connection
+		🏗️  quit: Close the connection
 		   select: Change the selected database for the current connection
 	SERVER
 		   bgrewriteaof: Asynchronously rewrite the append-only file
@@ -29,7 +29,7 @@
 		   setnx: Set the value of a key, only if the key does not exist
 		   substr: Get a substring of the string stored at a key
 	GENERIC
-		   del: Delete a key
+		✅ del: Delete a key
 		   exists: Determine if a key exists
 		   expire: Set a key's time to live in seconds
 		   keys: Find all keys matching the given pattern
