@@ -24,6 +24,9 @@ var ErrWrongKind = errors.New("wrong type")
 // ErrWrongNumberArguments is thrown when a command is not called with the correct number of arguments
 var ErrWrongNumberArguments = errors.New("wrong number of arguments")
 
+// ErrDBIndexOutOfRange is thrown when SELECT {idx} and idx is less than 0, or greater than the available DBs
+var ErrDBIndexOutOfRange = errors.New("db index out of range")
+
 // Storage defines the interface that the Server needs to store things
 type Storage interface {
 	stringOperations

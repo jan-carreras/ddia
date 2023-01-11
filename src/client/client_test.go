@@ -12,8 +12,13 @@ import (
 func TestClient_Set(t *testing.T) {
 	logger := log.ServerLogger()
 	store := storage.NewInMemory()
-	handlers := server.NewHandlers(logger, store)
-	s := server.New(handlers, server.WithRandomPort(), server.WithLogger(logger))
+	handlers := server.NewHandlers(logger)
+	s := server.New(
+		handlers,
+		server.WithRandomPort(),
+		server.WithLogger(logger),
+		server.WithDBs([]server.Storage{store}),
+	)
 
 	err := s.Start(context.Background())
 	if err != nil {
@@ -44,8 +49,13 @@ func TestClient_Set(t *testing.T) {
 func TestClient_Get(t *testing.T) {
 	store := storage.NewInMemory()
 	logger := log.ServerLogger()
-	handlers := server.NewHandlers(logger, store)
-	s := server.New(handlers, server.WithRandomPort(), server.WithLogger(logger))
+	handlers := server.NewHandlers(logger)
+	s := server.New(
+		handlers,
+		server.WithRandomPort(),
+		server.WithLogger(logger),
+		server.WithDBs([]server.Storage{store}),
+	)
 
 	err := s.Start(context.Background())
 	if err != nil {
@@ -73,8 +83,13 @@ func TestClient_Get(t *testing.T) {
 func TestClient_Ping(t *testing.T) {
 	store := storage.NewInMemory()
 	logger := log.ServerLogger()
-	handlers := server.NewHandlers(logger, store)
-	s := server.New(handlers, server.WithRandomPort(), server.WithLogger(logger))
+	handlers := server.NewHandlers(logger)
+	s := server.New(
+		handlers,
+		server.WithRandomPort(),
+		server.WithLogger(logger),
+		server.WithDBs([]server.Storage{store}),
+	)
 
 	err := s.Start(context.Background())
 	if err != nil {

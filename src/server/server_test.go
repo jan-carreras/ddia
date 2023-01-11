@@ -10,11 +10,28 @@ import (
 	"time"
 )
 
-func TestStart(t *testing.T) {
+func testServer() *server.Server {
 	logger := log.ServerLogger()
-	store := storage.NewInMemory()
-	handlers := server.NewHandlers(logger, store)
-	s := server.New(handlers, server.WithLogger(logger), server.WithRandomPort())
+	handlers := server.NewHandlers(logger)
+	return server.New(handlers, serverOptions()...)
+}
+
+func serverOptions() []server.Option {
+	logger := log.ServerLogger()
+	dbs := make([]server.Storage, 16)
+	for i := 0; i < len(dbs); i++ {
+		dbs[i] = storage.NewInMemory()
+	}
+
+	return []server.Option{
+		server.WithLogger(logger),
+		server.WithRandomPort(),
+		server.WithDBs(dbs),
+	}
+}
+
+func TestStart(t *testing.T) {
+	s := testServer()
 
 	err := s.Start(context.Background())
 	if err != nil {
@@ -35,12 +52,7 @@ func TestStart(t *testing.T) {
 }
 
 func TestServer_Set(t *testing.T) {
-	store := storage.NewInMemory()
-
-	logger := log.ServerLogger()
-	handlers := server.NewHandlers(logger, store)
-	s := server.New(handlers, server.WithLogger(logger), server.WithRandomPort())
-
+	s := testServer()
 	err := s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("Start faield: %v, wanted no error", err)
@@ -56,21 +68,17 @@ func TestServer_Set(t *testing.T) {
 		t.Fatalf("invalid response: %q want %q", string(rsp), want)
 	}
 
-	v, err := store.Get("hello")
+	v, err := cli.Get("hello")
 	if err != nil {
 		t.Fatalf("Set faield: %v, wanted no error", err)
 	}
-	if want := "world"; v != want {
+	if want := "world"; string(v) != want {
 		t.Fatalf("invalid response: %q want %q", v, want)
 	}
 }
 
 func TestServer_Ping(t *testing.T) {
-	store := storage.NewInMemory()
-
-	logger := log.ServerLogger()
-	handlers := server.NewHandlers(logger, store)
-	s := server.New(handlers, server.WithLogger(logger), server.WithRandomPort())
+	s := testServer()
 
 	err := s.Start(context.Background())
 	if err != nil {
@@ -98,11 +106,7 @@ func TestServer_Ping(t *testing.T) {
 }
 
 func TestStart_GracefulShutdown(t *testing.T) {
-	logger := log.ServerLogger()
-	store := storage.NewInMemory()
-	handlers := server.NewHandlers(logger, store)
-
-	s := server.New(handlers, server.WithRandomPort(), server.WithLogger(logger))
+	s := testServer()
 
 	err := s.Start(context.Background())
 	if err != nil {

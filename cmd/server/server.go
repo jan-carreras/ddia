@@ -22,9 +22,16 @@ func main() {
 
 func startServer() error {
 	log := log.New(os.Stdout, "[server] ", 0)
-	store := storage.NewInMemory()
-	handlers := server.NewHandlers(log, store)
-	s := server.New(handlers, server.WithLogger(log))
+	dbs := make([]server.Storage, 16)
+	for i := 0; i < len(dbs); i++ {
+		dbs[i] = storage.NewInMemory()
+	}
+	handlers := server.NewHandlers(log)
+	s := server.New(
+		handlers,
+		server.WithLogger(log),
+		server.WithDBs(dbs),
+	)
 
 	err := s.Start(context.Background())
 	if err != nil {

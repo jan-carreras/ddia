@@ -30,6 +30,8 @@ const (
 	Echo = "ECHO"
 	// Quit command
 	Quit = "QUIT"
+	// Select command
+	Select = "SELECT"
 
 	/* STRING */
 

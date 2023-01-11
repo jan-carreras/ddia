@@ -11,13 +11,12 @@ import (
 // Handlers define the commands being handled by the Redis Server. A new command should be registered
 // as a public function in the handler file.
 type Handlers struct {
-	logger  logger.Logger
-	storage Storage
+	logger logger.Logger
 }
 
 // NewHandlers returns a Handlers
-func NewHandlers(logger logger.Logger, storage Storage) *Handlers {
-	return &Handlers{logger: logger, storage: storage}
+func NewHandlers(logger logger.Logger) *Handlers {
+	return &Handlers{logger: logger}
 }
 
 // Get the value of a key
@@ -32,7 +31,7 @@ func (h *Handlers) Get(c *client) error {
 
 	key := c.args[1]
 
-	value, err := h.storage.Get(key)
+	value, err := c.db.Get(key)
 	if err != nil {
 		return err
 	}
@@ -52,7 +51,7 @@ func (h *Handlers) Set(c *client) error {
 
 	key, value := c.args[1], c.args[2]
 
-	err := h.storage.Set(key, value)
+	err := c.db.Set(key, value)
 	if err != nil {
 		return fmt.Errorf("storage.Set: %w", err)
 	}
@@ -95,7 +94,7 @@ func (h *Handlers) IncrBy(c *client) error {
 		return ErrValueNotInt
 	}
 
-	newValue, err := h.storage.IncrementBy(key, incr)
+	newValue, err := c.db.IncrementBy(key, incr)
 	if err != nil {
 		return err
 	}
@@ -115,7 +114,7 @@ func (h *Handlers) Incr(c *client) error {
 
 	key := c.args[1]
 
-	newValue, err := h.storage.Increment(key)
+	newValue, err := c.db.Increment(key)
 	if err != nil {
 		return err
 	}
@@ -140,7 +139,7 @@ func (h *Handlers) DecrBy(c *client) error {
 		return err
 	}
 
-	newValue, err := h.storage.DecrementBy(key, decrement)
+	newValue, err := c.db.DecrementBy(key, decrement)
 	if err != nil {
 		return err
 	}
@@ -160,7 +159,7 @@ func (h *Handlers) Decr(c *client) error {
 
 	key := c.args[1]
 
-	newV, err := h.storage.Decrement(key)
+	newV, err := c.db.Decrement(key)
 	if err != nil {
 		return nil
 	}
@@ -175,7 +174,7 @@ func (h *Handlers) DBSize(c *client) error {
 		return nil
 	}
 
-	return c.writeResponse(resp.NewInteger(h.storage.Size()))
+	return c.writeResponse(resp.NewInteger(c.db.Size()))
 }
 
 // Del removes the specified keys. A key is ignored if it does not exist.
@@ -197,7 +196,7 @@ func (h *Handlers) Del(c *client) error {
 
 	countDeleted := 0
 	for _, key := range keys {
-		if h.storage.Del(key) {
+		if c.db.Del(key) {
 			countDeleted++
 		}
 	}
@@ -225,6 +224,30 @@ func (h *Handlers) Quit(c *client) error {
 	// TODO: Not quite it. We might we writing a response somewhere else and we
 	// should wait until we've finishing writing
 	return c.conn.Close()
+}
+
+// Select the Redis logical database having the specified zero-based numeric index.
+//
+//	SELECT index
+//
+// More: https://redis.io/commands/select/
+func (h *Handlers) Select(c *client, dbs []Storage) error {
+	if err := c.requiredArgs(1); err != nil {
+		return err
+	}
+
+	newDB := c.args[1]
+	id, err := strconv.Atoi(newDB)
+	if err != nil {
+		return ErrValueNotInt
+	} else if id < 0 || id >= len(dbs) {
+		return ErrDBIndexOutOfRange
+	}
+
+	// Update the database where the client is pointing to
+	c.dbIdx, c.db = id, dbs[id]
+
+	return c.writeResponse(resp.NewSimpleString("OK"))
 }
 
 // UnknownCommand returns an error when the command is unknown

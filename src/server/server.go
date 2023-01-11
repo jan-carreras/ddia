@@ -121,6 +121,9 @@ func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 		}
 	}()
 
+	// Initialize a client object using the connection and the default DB
+	c := &client{conn: conn, db: s.options.dbs[0]}
+
 	s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
 	for {
 		args, err := s.readCommand(conn)
@@ -131,7 +134,9 @@ func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 			return fmt.Errorf("readCommand: %w", err)
 		}
 
-		c := &client{conn: conn, args: args}
+		// Load the arguments to the client, to be able to process the request
+		c.args = args
+
 		if err := s.processClientRequest(c); err != nil {
 			return fmt.Errorf("processCommand: %w", err)
 		}
@@ -191,6 +196,8 @@ func (s *Server) processCommand(c *client) error {
 		return s.handlers.Echo(c)
 	case resp.Quit:
 		return s.handlers.Quit(c)
+	case resp.Select:
+		return s.handlers.Select(c, s.options.dbs)
 	case resp.Get:
 		return s.handlers.Get(c)
 	case resp.Set:

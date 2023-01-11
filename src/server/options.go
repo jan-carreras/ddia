@@ -6,6 +6,7 @@ import (
 
 type options struct {
 	logger logger.Logger
+	dbs    []Storage
 	host   string
 	port   int
 }
@@ -26,6 +27,17 @@ func (l loggerOption) apply(opts *options) {
 // WithLogger uses log as logger
 func WithLogger(log logger.Logger) Option {
 	return loggerOption{log: log}
+}
+
+type dbs []Storage
+
+func (d dbs) apply(opts *options) {
+	opts.dbs = d
+}
+
+func WithDBs(db []Storage) Option {
+	return dbs(db)
+
 }
 
 type host string
