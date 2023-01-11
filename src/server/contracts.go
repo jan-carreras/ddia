@@ -18,8 +18,11 @@ var ErrValueNotInt = errors.New("value not int")
 // Eg:
 //
 //	set "hello" "world"
-//	llen "hello" <--- List Lenght command is invalid on a String type. Must return ErrWrongKind
+//	llen "hello" <--- List Length command is invalid on a String type. Must return ErrWrongKind
 var ErrWrongKind = errors.New("wrong type")
+
+// ErrWrongNumberArguments is thrown when a command is not called with the correct number of arguments
+var ErrWrongNumberArguments = errors.New("wrong number of arguments")
 
 // Storage defines the interface that the Server needs to store things
 type Storage interface {

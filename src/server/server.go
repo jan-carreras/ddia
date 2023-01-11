@@ -80,11 +80,9 @@ func (s *Server) serve(ctx context.Context) {
 				return // Graceful shutdown
 			default:
 				var opError *net.OpError
-				if ok := errors.As(err, &opError); ok {
-					if opError.Temporary() {
-						s.logger.Printf("[error][temporary] %v\n", err)
-						continue
-					}
+				if errors.As(err, &opError) && opError.Temporary() {
+					s.logger.Printf("[error][temporary] %v\n", err)
+					continue
 				}
 
 				s.logger.Printf("[error] %v\n", err)
@@ -107,7 +105,6 @@ func (s *Server) Stop() error {
 	close(s.quit)
 	err := s.listener.Close() // Close listener, thus new connections
 	s.wg.Wait()               // Waiting for clients to finish
-	s.logger.Println("Server stopped")
 	return err
 }
 
@@ -126,16 +123,16 @@ func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 
 	s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
 	for {
-		cmd, err := s.readCommand(conn)
+		args, err := s.readCommand(conn)
 		if errors.Is(err, io.EOF) {
 			s.logger.Printf("client %s closed the connection", conn.RemoteAddr().String())
 			return nil
-		}
-		if err != nil {
+		} else if err != nil {
 			return fmt.Errorf("readCommand: %w", err)
 		}
 
-		if err := s.processCommand(conn, cmd); err != nil {
+		c := &client{conn: conn, args: args}
+		if err := s.processClientRequest(c); err != nil {
 			return fmt.Errorf("processCommand: %w", err)
 		}
 	}
@@ -150,12 +147,12 @@ func (s *Server) readCommand(conn net.Conn) ([]string, error) {
 	s.logger.Printf("parsing operation: %q\n", string(operation))
 	switch operation {
 	case resp.ArrayOp:
-		cmd, err := s.parseBulkString(reader)
+		args, err := s.parseBulkString(reader)
 		if err != nil {
 			return nil, fmt.Errorf("parseBulkString: %w", err)
 		}
 
-		return cmd, nil
+		return args, nil
 	default:
 		return nil, fmt.Errorf("unknown opertion type: %q", operation)
 	}
@@ -174,53 +171,66 @@ func (s *Server) parseBulkString(conn io.Reader) ([]string, error) {
 	return b.Strings(), nil
 }
 
-func (s *Server) processCommand(conn net.Conn, cmd []string) error {
-	if len(cmd) == 0 {
-		return errors.New("invalid command: length 0")
+func (s *Server) processClientRequest(c *client) error {
+	err := s.processCommand(c)
+
+	if err := handleWellKnownErrors(c, err); err != nil {
+		return fmt.Errorf("processCommand(%q): %w", c.command(), err)
 	}
 
-	switch verb := cmd[0]; strings.ToUpper(verb) {
+	return nil
+}
+
+func (s *Server) processCommand(c *client) error {
+	switch strings.ToUpper(c.command()) {
+	case "":
+		return errors.New("invalid command: length 0")
 	case resp.Ping:
-		if err := s.handlers.Ping(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.Ping: %w", err)
-		}
+		return s.handlers.Ping(c)
 	case resp.Get:
-		if err := s.handlers.Get(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.Get: %w", err)
-		}
+		return s.handlers.Get(c)
 	case resp.Set:
-		if err := s.handlers.Set(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.Set: %w", err)
-		}
+		return s.handlers.Set(c)
 	case resp.DBSize:
-		if err := s.handlers.DBSize(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.DBSize: %w", err)
-		}
+		return s.handlers.DBSize(c)
 	case resp.Del:
-		if err := s.handlers.Del(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.Del: %w", err)
-		}
+		return s.handlers.Del(c)
 	case resp.Incr:
-		if err := s.handlers.Incr(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.Incr: %w", err)
-		}
+		return s.handlers.Incr(c)
 	case resp.IncrBy:
-		if err := s.handlers.IncrBy(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.IncrBy: %w", err)
-		}
+		return s.handlers.IncrBy(c)
 	case resp.Decr:
-		if err := s.handlers.Decr(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.Incr: %w", err)
-		}
+		return s.handlers.Decr(c)
 	case resp.DecrBy:
-		if err := s.handlers.DecrBy(conn, cmd); err != nil {
-			return fmt.Errorf("handlers.IncrBy: %w", err)
-		}
+		return s.handlers.DecrBy(c)
 	default:
-		if err := s.handlers.UnknownCommand(conn, cmd[0]); err != nil {
+		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)
 		}
 	}
 
 	return nil
+}
+
+func handleWellKnownErrors(c *client, err error) error {
+	var rsp io.WriterTo
+
+	if err == nil {
+		return nil
+	} else if errors.Is(err, ErrNotFound) {
+		rsp = resp.NewSimpleString("")
+	} else if errors.Is(err, ErrWrongKind) {
+		rsp = resp.NewError("ERR value is not an integer or out of range")
+	} else if errors.Is(err, ErrValueNotInt) {
+		rsp = resp.NewError("ERR value is not an integer or out of range")
+	} else if errors.Is(err, ErrWrongNumberArguments) {
+		rsp = resp.NewError(fmt.Sprintf("ERR wrong number of arguments for '%s' command", c.command()))
+	}
+
+	if rsp != nil {
+		return c.writeResponse(rsp)
+	}
+
+	// Error is not a "well known" one, thus we're not going to respond anything to the client
+	return err
 }
