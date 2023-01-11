@@ -47,16 +47,13 @@
 
 ## Option 1:
 
-### Pros
-
-*
-
-### Cons
-
-*
-
+* Pros:
+* Cons:
 
 ## Option 2:
+
+* Pros:
+* Cons:
 
 # Design chosen
 
