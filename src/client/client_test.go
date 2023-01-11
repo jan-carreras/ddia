@@ -62,7 +62,7 @@ func TestClient_Get(t *testing.T) {
 
 	rsp, err := c.Get(k)
 	if err != nil {
-		t.Fatalf("Get: %v", err)
+		t.Fatalf("expecting no error, got: %q", err)
 	}
 
 	if want := "world"; want != string(rsp) {
