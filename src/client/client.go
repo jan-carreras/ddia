@@ -76,7 +76,7 @@ func (c *Client) Get(key string) ([]byte, error) {
 
 }
 
-// Ping returns the key being send, or the string PONG
+// Ping returns the key being sent, or the string PONG
 func (c *Client) Ping(key string) ([]byte, error) {
 	cmd, err := encodeBulkStrings([]string{"PING"})
 	if len(key) != 0 {
@@ -143,7 +143,7 @@ func (c *Client) response(reader io.Reader) ([]byte, error) {
 		s := resp.SimpleString{}
 		_, err := s.ReadFrom(reader)
 		if err != nil {
-			return nil, fmt.Errorf("ReadFrom: %w", err)
+			return nil, fmt.Errorf("unable to read SimpleStringOp: %w", err)
 		}
 
 		return []byte(s.String()), nil
@@ -151,10 +151,17 @@ func (c *Client) response(reader io.Reader) ([]byte, error) {
 		bs := resp.Str{}
 		_, err := bs.ReadFrom(reader)
 		if err != nil {
-			return nil, fmt.Errorf("ReadFrom: %w", err)
+			return nil, fmt.Errorf("unable to read BulkStringOp: %w", err)
 		}
 
 		return []byte(bs.String()), nil
+	case resp.ErrorOp:
+		e := resp.Error{}
+		_, err := e.ReadFrom(reader)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read error from socket: %v", err)
+		}
+		return []byte(e.String()), nil
 	}
 
 	return nil, fmt.Errorf("unknown operation: %c", operation)
