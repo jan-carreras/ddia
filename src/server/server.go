@@ -187,6 +187,10 @@ func (s *Server) processCommand(c *client) error {
 		return errors.New("invalid command: length 0")
 	case resp.Ping:
 		return s.handlers.Ping(c)
+	case resp.Echo:
+		return s.handlers.Echo(c)
+	case resp.Quit:
+		return s.handlers.Quit(c)
 	case resp.Get:
 		return s.handlers.Get(c)
 	case resp.Set:
