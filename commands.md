@@ -4,7 +4,7 @@
 		✅ echo: Echo the given string
 		✅ ping: Ping the server
 		🏗️  quit: Close the connection
-		   select: Change the selected database for the current connection
+		✅ select: Change the selected database for the current connection
 	SERVER
 		   bgrewriteaof: Asynchronously rewrite the append-only file
 		   bgsave: Asynchronously save the dataset to disk

@@ -42,5 +42,9 @@
   {
     "name": "quit",
     "status": "partially-implemented"
+  },
+  {
+    "name": "select",
+    "status": "implemented"
   }
 ]
