@@ -86,6 +86,7 @@ func read(input io.Reader) (Config, error) {
 		}
 
 		key, value := parts[0], parts[1]
+
 		config.data[key] = append(config.data[key], value)
 	}
 
