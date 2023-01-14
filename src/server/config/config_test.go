@@ -1,9 +1,30 @@
 package config
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 )
+
+func TestCommandConsistency(t *testing.T) {
+	t.Run("check for duplicates", func(t *testing.T) {
+		set := make(map[string]bool)
+		for _, o := range options() {
+			if _, ok := set[o.name]; ok {
+				t.Fatalf("duplicate found: %s", o.name)
+			}
+			set[o.name] = true
+		}
+	})
+
+	t.Run("check for empty options", func(t *testing.T) {
+		for _, o := range options() {
+			if o.name == "" {
+				t.Fatalf("option with empty name: %v. All options should have a name", o)
+			}
+		}
+	})
+}
 
 func TestConfig_Get(t *testing.T) {
 	config, err := New("testdata/redis.conf")
@@ -17,6 +38,15 @@ func TestConfig_Get(t *testing.T) {
 	}
 
 	if want := "16"; value != want {
+		t.Fatalf("invalid databases value: %q, want %q", value, want)
+	}
+
+	value, ok = config.Get("requirepass")
+	if !ok {
+		t.Fatalf("key expected to be found")
+	}
+
+	if want := "hello-there-2"; value != want {
 		t.Fatalf("invalid databases value: %q, want %q", value, want)
 	}
 }
@@ -45,8 +75,9 @@ func TestConfig_Integer(t *testing.T) {
 		t.Fatalf("invalid databases: %d, want %d", value, want)
 	}
 
-	value, err = config.Integer("loglevel", 60)
-	if err == nil {
+	// requirepass should be parsed as a string, not integer. Should always return error
+	value, err = config.Integer("requirepass", 60)
+	if !errors.Is(err, ErrInvalidType) {
 		t.Fatalf("expecting error: %q, want %q", err.Error(), ErrInvalidType)
 	}
 
@@ -98,10 +129,17 @@ func TestConfig_GetM(t *testing.T) {
 		t.Fatalf("key expected to be found")
 	}
 
-	want := []string{"900 1", "300 10", "60 10000"}
+	want := []string{"900 1", "300 10", "60 10000", "30 100000"}
 
 	if !reflect.DeepEqual(values, want) {
 		t.Fatalf("incorrect values: %v, want %v", values, want)
 	}
 
+}
+
+func TestNew_InvalidFile(t *testing.T) {
+	_, err := New("testdata/non-existing-file.conf")
+	if !errors.Is(err, ErrInvalidFile) {
+		t.Fatalf("expected error: %q, want %q", err, ErrInvalidFile)
+	}
 }
