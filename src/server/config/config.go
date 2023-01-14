@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -95,38 +96,54 @@ func (c Config) GetM(key string) (values []string, ok bool) {
 }
 
 func parseConfig(config *Config, filePath string) error {
-	return readFileByLine(config, filePath, func(lineNo int, line string) error {
-		parts := strings.SplitN(line, " ", 2)
-		if len(parts) != 2 {
-			return fmt.Errorf("%w. line: %d: %s", ErrInvalidFile, lineNo, line)
-		}
-
-		key, value := parts[0], parts[1]
-
+	// the callback function receives 3 parameters:
+	// 		lineNo: line number in the file (eg: line 42)
+	//      key: the specific key (eg: "databases")
+	//      value: is the value for the specific key (eg: "16")
+	return readFileByLine(config, filePath, func(lineNo int, key, value string) error {
 		command, err := checkIsSupported(key)
 		if err != nil {
 			return err
 		}
 
 		if key == "include" {
+			// the file must be relative to the original parent
 			filename := path.Join(path.Dir(filePath), value)
-			if err := parseConfig(config, filename); err != nil {
-				return fmt.Errorf("%s:%d : %w", filename, lineNo, err)
+			if err := includeFile(config, filename, lineNo); err != nil {
+				return err
 			}
 		}
 
 		if command.hasFlag(multipleFlag) {
+			// We might have multiple values for the same key, so we append them
 			config.data[key] = append(config.data[key], value)
 		} else { // singleFlag
+			// We can only have a single value for that key, so if multiples keys are found
+			// we only keep the last one
 			config.data[key] = []string{value}
 		}
 
 		return nil
 	})
-
 }
 
-func readFileByLine(config *Config, filename string, processLine func(lineNumber int, line string) error) error {
+func includeFile(config *Config, filename string, lineNo int) error {
+	// expand filenames like "*.config" or "redis-?.config". If no expansion is being done,
+	// the same file is returned.
+	filenames, err := filepath.Glob(filename)
+	if err != nil {
+		return fmt.Errorf("unable to expand path: %w: %v", ErrInvalidType, err)
+	}
+	for _, f := range filenames {
+		if err := parseConfig(config, f); err != nil {
+			return fmt.Errorf("%s:%d : %w", filename, lineNo, err)
+		}
+	}
+
+	return nil
+}
+
+func readFileByLine(config *Config, filename string, processLine func(lineNumber int, key, value string) error) error {
 	if err := fileImportedAlready(config, filename); err != nil {
 		return err
 	}
@@ -148,7 +165,14 @@ func readFileByLine(config *Config, filename string, processLine func(lineNumber
 			continue
 		}
 
-		err := processLine(i, line)
+		parts := strings.SplitN(line, " ", 2)
+		if len(parts) != 2 {
+			return fmt.Errorf("%w. line: %d: %s", ErrInvalidFile, i, line)
+		}
+
+		key, value := parts[0], parts[1]
+
+		err := processLine(i, key, value)
 		if err != nil {
 			return err
 		}
