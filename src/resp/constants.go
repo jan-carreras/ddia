@@ -60,4 +60,6 @@ const (
 
 	// FlushDB command
 	FlushDB = "FLUSHDB"
+	// FlushAll command
+	FlushAll = "FLUSHALL"
 )

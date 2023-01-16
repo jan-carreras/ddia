@@ -10,7 +10,7 @@
 		   bgsave: Asynchronously save the dataset to disk
 		✅ dbsize: Return the number of keys in the selected database
 		   debug: A container for debugging commands
-		   flushall: Remove all keys from all databases
+		✅ flushall: Remove all keys from all databases
 		✅ flushdb: Remove all keys from the current database
 		   info: Get information and statistics about the server
 		   lastsave: Get the UNIX time stamp of the last successful save to disk

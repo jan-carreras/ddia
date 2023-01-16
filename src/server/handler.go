@@ -290,3 +290,18 @@ func (h *Handlers) FlushDB(c *client) error {
 
 	return c.writeResponse(resp.NewSimpleString("OK"))
 }
+
+// FlushAll removes all keys in all databases
+func (h *Handlers) FlushAll(c *client, dbs []Storage) error {
+	if err := c.requiredArgs(0); err != nil {
+		return err
+	}
+
+	for _, db := range dbs {
+		if err := db.FlushDB(); err != nil {
+			return err
+		}
+	}
+
+	return c.writeResponse(resp.NewSimpleString("OK"))
+}
