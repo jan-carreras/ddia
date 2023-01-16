@@ -62,5 +62,9 @@
   {
     "name": "flushall",
     "status": "implemented"
+  },
+  {
+    "name": "exists",
+    "status": "implemented"
   }
 ]

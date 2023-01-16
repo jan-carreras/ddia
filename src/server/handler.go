@@ -3,6 +3,7 @@ package server
 import (
 	"ddia/src/logger"
 	"ddia/src/resp"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -257,6 +258,7 @@ func (h *Handlers) UnknownCommand(c *client) error {
 }
 
 // Auth authenticates the client to the server, if requirepass directive is defined in the configuration file
+// More: https://redis.io/commands/auth/
 func (h *Handlers) Auth(c *client, expectedPassword string) error {
 	if err := c.requiredArgs(1); err != nil {
 		return err
@@ -278,7 +280,8 @@ func (h *Handlers) Auth(c *client, expectedPassword string) error {
 	return c.writeResponse(err)
 }
 
-// FlushDB removes all keys from the storage
+// FlushDB delete all the keys of the currently selected DB. This command never fails.
+// More: https://redis.io/commands/flushdb/
 func (h *Handlers) FlushDB(c *client) error {
 	if err := c.requiredArgs(0); err != nil {
 		return err
@@ -291,7 +294,8 @@ func (h *Handlers) FlushDB(c *client) error {
 	return c.writeResponse(resp.NewSimpleString("OK"))
 }
 
-// FlushAll removes all keys in all databases
+// FlushAll delete all the keys of all the existing databases, not just the currently selected one.
+// More: https://redis.io/commands/flushall
 func (h *Handlers) FlushAll(c *client, dbs []Storage) error {
 	if err := c.requiredArgs(0); err != nil {
 		return err
@@ -304,4 +308,31 @@ func (h *Handlers) FlushAll(c *client, dbs []Storage) error {
 	}
 
 	return c.writeResponse(resp.NewSimpleString("OK"))
+}
+
+// Exists returns if key exists. 1 if exists, 0 otherwiese.
+//
+//	redis> SET key1 "Hello"
+//	"OK"
+//	redis> EXISTS key1
+//	(integer) 1
+//	redis> EXISTS nosuchkey
+//	(integer) 0
+//
+// More: https://redis.io/commands/exists/
+func (h *Handlers) Exists(c *client) error {
+	if err := c.requiredArgs(1); err != nil {
+		return err
+	}
+
+	key := c.args[1]
+
+	err := c.db.Exists(key)
+	if errors.Is(err, ErrNotFound) {
+		return c.writeResponse(resp.NewInteger(0))
+	} else if err != nil {
+		return err
+	}
+
+	return c.writeResponse(resp.NewInteger(1))
 }

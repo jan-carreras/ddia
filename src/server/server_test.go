@@ -262,3 +262,19 @@ func TestServer_FlushAll(t *testing.T) {
 		}
 	})
 }
+
+func TestServer_Exists(t *testing.T) {
+	req := makeReq(t)
+
+	rsp, want := req("exists hello"), ":0\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+
+	req("set hello world")
+
+	rsp, want = req("exists hello"), ":1\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+}

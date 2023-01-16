@@ -30,7 +30,7 @@
 		   substr: Get a substring of the string stored at a key
 	GENERIC
 		✅ del: Delete a key
-		   exists: Determine if a key exists
+		✅ exists: Determine if a key exists
 		   expire: Set a key's time to live in seconds
 		   keys: Find all keys matching the given pattern
 		   move: Move a key to another database

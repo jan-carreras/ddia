@@ -236,6 +236,8 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.FlushDB(c)
 	case resp.FlushAll:
 		return s.handlers.FlushAll(c, s.options.dbs)
+	case resp.Exists:
+		return s.handlers.Exists(c)
 	default:
 		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)

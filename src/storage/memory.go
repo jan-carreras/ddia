@@ -175,6 +175,19 @@ func (m *InMemory) FlushDB() error {
 	return nil
 }
 
+// Exists returns ErrNotFound if key does not exists, return null otherwise
+func (m *InMemory) Exists(key string) error {
+	m.recordsMux.Lock()
+	defer m.recordsMux.Unlock()
+
+	_, ok := m.records[key]
+	if !ok {
+		return server.ErrNotFound
+	}
+
+	return nil
+}
+
 // assertType returns an error ErrWrongKind if the key exists, and it's different from kind
 func (m *InMemory) assertType(key string, kind kind) error {
 	if atom, ok := m.records[key]; ok && atom.kind != kind {

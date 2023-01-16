@@ -53,7 +53,7 @@ const (
 	// DecrBy command
 	DecrBy = "DECRBY"
 
-	/* GENERIC */
+	/* SERVER */
 
 	// DBSize command
 	DBSize = "DBSIZE"
@@ -62,4 +62,9 @@ const (
 	FlushDB = "FLUSHDB"
 	// FlushAll command
 	FlushAll = "FLUSHALL"
+
+	/* GENERIC */
+
+	// Exists command
+	Exists = "EXISTS"
 )
