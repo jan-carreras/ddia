@@ -232,6 +232,8 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.DecrBy(c)
 	case resp.Auth:
 		return s.handlers.Auth(c, s.options.password)
+	case resp.FlushDB:
+		return s.handlers.FlushDB(c)
 	default:
 		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)

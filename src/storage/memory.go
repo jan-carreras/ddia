@@ -165,6 +165,16 @@ func (m *InMemory) Del(key string) bool {
 	return found
 }
 
+// FlushDB removes all keys in the database
+func (m *InMemory) FlushDB() error {
+	m.recordsMux.Lock()
+	defer m.recordsMux.Unlock()
+
+	m.records = make(map[string]atom)
+
+	return nil
+}
+
 // assertType returns an error ErrWrongKind if the key exists, and it's different from kind
 func (m *InMemory) assertType(key string, kind kind) error {
 	if atom, ok := m.records[key]; ok && atom.kind != kind {

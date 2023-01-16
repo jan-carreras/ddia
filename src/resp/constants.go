@@ -57,4 +57,7 @@ const (
 
 	// DBSize command
 	DBSize = "DBSIZE"
+
+	// FlushDB command
+	FlushDB = "FLUSHDB"
 )

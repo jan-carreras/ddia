@@ -277,3 +277,16 @@ func (h *Handlers) Auth(c *client, expectedPassword string) error {
 	err := resp.NewError("WRONGPASS invalid username-password pair or user is disabled.")
 	return c.writeResponse(err)
 }
+
+// FlushDB removes all keys from the storage
+func (h *Handlers) FlushDB(c *client) error {
+	if err := c.requiredArgs(0); err != nil {
+		return err
+	}
+
+	if err := c.db.FlushDB(); err != nil {
+		return err
+	}
+
+	return c.writeResponse(resp.NewSimpleString("OK"))
+}

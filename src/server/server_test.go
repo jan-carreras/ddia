@@ -194,3 +194,33 @@ func TestServer_Auth(t *testing.T) {
 		t.Fatalf("expecting to be authenticated: %q, want %q", rsp, want)
 	}
 }
+
+func TestServer_FlushDB(t *testing.T) {
+	req := makeReq(t)
+
+	rsp, want := req("flushdb"), "+OK\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+
+	t.Run("remove actual data", func(t *testing.T) {
+		req("set hello world")
+		req("set answer-to-everything 42")
+
+		rsp, want := req("dbsize"), ":2\r\n"
+		if rsp != want {
+			t.Fatalf("invalid response: %q want %q", rsp, want)
+		}
+
+		rsp, want = req("flushdb"), "+OK\r\n"
+		if rsp != want {
+			t.Fatalf("invalid response: %q want %q", rsp, want)
+		}
+
+		// Database is empty after flush
+		rsp, want = req("dbsize"), ":0\r\n"
+		if rsp != want {
+			t.Fatalf("invalid response: %q want %q", rsp, want)
+		}
+	})
+}

@@ -50,6 +50,8 @@ type stringOperations interface {
 	DecrementBy(key string, amount int) (string, error)
 	// Decrement decrements the counter key by 1, returning the new value
 	Decrement(key string) (string, error)
+	// FlushDB removes all keys in the database
+	FlushDB() error
 }
 
 type genericOperations interface {

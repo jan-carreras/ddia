@@ -50,5 +50,13 @@
   {
     "name": "auth",
     "status": "implemented"
+  },
+  {
+    "name": "dbsize",
+    "status": "implemented"
+  },
+  {
+    "name": "flushdb",
+    "status": "implemented"
   }
 ]
