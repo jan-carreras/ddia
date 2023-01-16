@@ -27,6 +27,9 @@ var ErrWrongNumberArguments = errors.New("wrong number of arguments")
 // ErrDBIndexOutOfRange is thrown when SELECT {idx} and idx is less than 0, or greater than the available DBs
 var ErrDBIndexOutOfRange = errors.New("db index out of range")
 
+// ErrOperationNotPermitted is returned when the user is not authenticated and cannot perform that command
+var ErrOperationNotPermitted = errors.New("operation not permitted")
+
 // Storage defines the interface that the Server needs to store things
 type Storage interface {
 	stringOperations

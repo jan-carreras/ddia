@@ -27,13 +27,17 @@ func startServer() error {
 		dbs[i] = storage.NewInMemory()
 	}
 	handlers := server.NewHandlers(log)
-	s := server.New(
+	s, err := server.New(
 		handlers,
 		server.WithLogger(log),
 		server.WithDBs(dbs),
 	)
 
-	err := s.Start(context.Background())
+	if err != nil {
+		return fmt.Errorf("server.New: %w", err)
+	}
+
+	err = s.Start(context.Background())
 	if err != nil {
 		return fmt.Errorf("start: %w", err)
 	}

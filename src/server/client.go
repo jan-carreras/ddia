@@ -14,6 +14,8 @@ type client struct {
 	dbIdx int
 	// db points to the active database the client is connected to. Can be changed used the SELECT command
 	db Storage
+	// authenticated is true when the client has successfully authenticated to the Server using the AUTH command
+	authenticated bool
 }
 
 // requiredArgs makes sure that the number of arguments is equal to expectedArguments. Returns error otherwise.

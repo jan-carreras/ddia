@@ -1,6 +1,6 @@
 # 1.0.0
 	CONNECTION
-		   auth: Authenticate to the server
+		✅ auth: Authenticate to the server
 		✅ echo: Echo the given string
 		✅ ping: Ping the server
 		🏗️  quit: Close the connection

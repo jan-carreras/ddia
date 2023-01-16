@@ -5,6 +5,7 @@ import (
 	"context"
 	"ddia/src/logger"
 	"ddia/src/resp"
+	"ddia/src/server/config"
 	"errors"
 	"fmt"
 	"io"
@@ -32,7 +33,7 @@ type Server struct {
 }
 
 // New returns a new Redis Server configured with the Options provided
-func New(handlers *Handlers, opts ...Option) *Server {
+func New(handlers *Handlers, opts ...Option) (*Server, error) {
 	options := &options{
 		logger: logger.NewDiscard(),
 		host:   "localhost",
@@ -42,12 +43,22 @@ func New(handlers *Handlers, opts ...Option) *Server {
 		o.apply(options)
 	}
 
+	if options.configurationFile != "" {
+		fmt.Println(options.configurationFile, "----")
+		c, err := config.New(options.configurationFile)
+		if err != nil {
+			return nil, err
+		}
+
+		options.password = c.GetD("requirepass", "")
+	}
+
 	return &Server{
 		logger:   options.logger,
 		options:  *options,
 		quit:     make(chan interface{}),
 		handlers: handlers,
-	}
+	}, nil
 }
 
 // Start starts the redis server
@@ -188,6 +199,10 @@ func (s *Server) processCommand(c *client) (err error) {
 		err = handleWellKnownErrors(c, err)
 	}()
 
+	if err := s.isAuthenticated(c); err != nil {
+		return err
+	}
+
 	switch strings.ToUpper(c.command()) {
 	case "":
 		return errors.New("invalid command: length 0")
@@ -215,6 +230,8 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.Decr(c)
 	case resp.DecrBy:
 		return s.handlers.DecrBy(c)
+	case resp.Auth:
+		return s.handlers.Auth(c, s.options.password)
 	default:
 		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)
@@ -222,6 +239,18 @@ func (s *Server) processCommand(c *client) (err error) {
 	}
 
 	return nil
+}
+
+func (s *Server) isAuthenticated(c *client) error {
+	// Reasons why we consider the client to be authenticated:
+	//		c.authenticated is true: Means it has previously been authenticated using a AUTH command
+	//      s.options.password is empty: Means that the server does not require a password at all
+	//      The command is AUTH: this command does not require authentication. How would we authenticate otherwise?
+	if s.options.password == "" || c.authenticated || strings.ToUpper(c.command()) == resp.Auth {
+		return nil
+	}
+
+	return ErrOperationNotPermitted
 }
 
 func handleWellKnownErrors(c *client, err error) error {
@@ -237,6 +266,8 @@ func handleWellKnownErrors(c *client, err error) error {
 		rsp = resp.NewError("ERR value is not an integer or out of range")
 	} else if errors.Is(err, ErrWrongNumberArguments) {
 		rsp = resp.NewError(fmt.Sprintf("ERR wrong number of arguments for '%s' command", c.command()))
+	} else if errors.Is(err, ErrOperationNotPermitted) {
+		rsp = resp.NewError("NOAUTH Authentication required")
 	}
 
 	if rsp != nil {

@@ -24,6 +24,9 @@ const readBufferSize = 512 // bytes
 const (
 	/* CONNECTION */
 
+	// Auth command
+	Auth = "AUTH"
+
 	// Ping command
 	Ping = "PING"
 	// Echo command

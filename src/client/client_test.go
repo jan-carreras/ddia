@@ -13,14 +13,17 @@ func TestClient_Set(t *testing.T) {
 	logger := log.ServerLogger()
 	store := storage.NewInMemory()
 	handlers := server.NewHandlers(logger)
-	s := server.New(
+	s, err := server.New(
 		handlers,
 		server.WithRandomPort(),
 		server.WithLogger(logger),
 		server.WithDBs([]server.Storage{store}),
 	)
+	if err != nil {
+		t.Fatalf("server.New: %v", err)
+	}
 
-	err := s.Start(context.Background())
+	err = s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("start application: %v", err)
 	}
@@ -50,14 +53,17 @@ func TestClient_Get(t *testing.T) {
 	store := storage.NewInMemory()
 	logger := log.ServerLogger()
 	handlers := server.NewHandlers(logger)
-	s := server.New(
+	s, err := server.New(
 		handlers,
 		server.WithRandomPort(),
 		server.WithLogger(logger),
 		server.WithDBs([]server.Storage{store}),
 	)
+	if err != nil {
+		t.Fatalf("server.New: %v", err)
+	}
 
-	err := s.Start(context.Background())
+	err = s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("start: %v", err)
 	}
@@ -84,14 +90,18 @@ func TestClient_Ping(t *testing.T) {
 	store := storage.NewInMemory()
 	logger := log.ServerLogger()
 	handlers := server.NewHandlers(logger)
-	s := server.New(
+	s, err := server.New(
 		handlers,
 		server.WithRandomPort(),
 		server.WithLogger(logger),
 		server.WithDBs([]server.Storage{store}),
 	)
 
-	err := s.Start(context.Background())
+	if err != nil {
+		t.Fatalf("server.New: %v", err)
+	}
+
+	err = s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("start: %v", err)
 	}

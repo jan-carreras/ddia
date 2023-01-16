@@ -55,8 +55,12 @@ func testServer(t *testing.T) *server.Server {
 	logger := log.ServerLogger()
 	handlers := server.NewHandlers(logger)
 
-	s := server.New(handlers, serverOptions()...)
-	err := s.Start(context.Background())
+	s, err := server.New(handlers, serverOptions()...)
+	if err != nil {
+		t.Fatalf("expecting server to be able to start without problems: %v", err)
+	}
+
+	err = s.Start(context.Background())
 	if err != nil {
 		t.Fatalf("expecing no error: %q", err.Error())
 	}

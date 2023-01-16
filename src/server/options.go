@@ -5,10 +5,12 @@ import (
 )
 
 type options struct {
-	logger logger.Logger
-	dbs    []Storage
-	host   string
-	port   int
+	logger            logger.Logger
+	dbs               []Storage
+	host              string
+	port              int
+	password          string
+	configurationFile string
 }
 
 // Option defines an interface that all options must match
@@ -39,6 +41,17 @@ func (d dbs) apply(opts *options) {
 func WithDBs(db []Storage) Option {
 	return dbs(db)
 
+}
+
+type configurationFile string
+
+func (c configurationFile) apply(opts *options) {
+	opts.configurationFile = string(c)
+}
+
+// WithConfigurationFile defines the path (relative or absolute) where a configuration file for the server is located
+func WithConfigurationFile(config string) Option {
+	return configurationFile(config)
 }
 
 type host string

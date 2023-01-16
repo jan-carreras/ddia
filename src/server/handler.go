@@ -255,3 +255,25 @@ func (h *Handlers) UnknownCommand(c *client) error {
 	err := resp.NewError(fmt.Sprintf("ERR unknown command '%s'", c.command()))
 	return c.writeResponse(err)
 }
+
+// Auth authenticates the client to the server, if requirepass directive is defined in the configuration file
+func (h *Handlers) Auth(c *client, expectedPassword string) error {
+	if err := c.requiredArgs(1); err != nil {
+		return err
+	}
+
+	clientPassword := c.args[1]
+
+	if expectedPassword == "" {
+		err := resp.NewError("ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?")
+		return c.writeResponse(err)
+	}
+
+	if clientPassword == expectedPassword {
+		c.authenticated = true
+		return c.writeResponse(resp.NewSimpleString("OK"))
+	}
+
+	err := resp.NewError("WRONGPASS invalid username-password pair or user is disabled.")
+	return c.writeResponse(err)
+}
