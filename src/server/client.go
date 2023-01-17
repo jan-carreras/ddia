@@ -52,14 +52,14 @@ func (c *client) writeResponse(to io.WriterTo) error {
 }
 
 func (c *client) readCommand() error {
-	operation, err := resp.ReadOperation(c.conn)
+	operation, err := resp.ReadOperation(c.reader)
 	if err != nil {
 		return fmt.Errorf("unable to peak operation: %w", err)
 	}
 
 	switch operation {
 	case resp.ArrayOp:
-		args, err := c.parseBulkString(c.conn)
+		args, err := c.parseBulkString(c.reader)
 		if err != nil {
 			return fmt.Errorf("parseBulkString: %w", err)
 		}
@@ -70,7 +70,7 @@ func (c *client) readCommand() error {
 		return nil
 	case 'P': // Ping, but without being part of SimpleString. I don't know which part of the specs describes this :/
 		var s resp.SimpleString
-		_, err := s.ReadFrom(c.conn)
+		_, err := s.ReadFrom(c.reader)
 		if "P"+s.String() == "PING" {
 			c.args = []string{"PING"}
 		}
