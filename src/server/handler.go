@@ -348,18 +348,20 @@ func (h *Handlers) Config(c *client, config config.Config) error {
 	}
 
 	cmd := c.args[1]
-	if cmd == "GET" {
+	if strings.ToUpper(cmd) == "GET" {
 		key := c.args[2]
-		var value string
+		value := resp.Array{}
 		switch key {
 		case "save":
-			value = "3600 1 300 100 60 10000"
+			value = resp.NewArray([]string{"save", "3600 1 300 100 60 10000"})
 		case "appendonly":
-			value = "no"
+			value = resp.NewArray([]string{"appendonly", "no"})
 		default:
-			value, _ = config.Get(key)
+			v, _ := config.Get(key)
+			value = resp.NewArray([]string{key, v})
 		}
-		return c.writeResponse(resp.NewSimpleString(value))
+
+		return c.writeResponse(&value)
 	}
 
 	err := resp.NewError(fmt.Sprintf("ERR unknown subcommand '%s'.", cmd))

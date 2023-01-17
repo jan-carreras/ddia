@@ -2,6 +2,7 @@
 package server
 
 import (
+	"bufio"
 	"context"
 	"ddia/src/logger"
 	"ddia/src/resp"
@@ -109,9 +110,13 @@ func (s *Server) serve(ctx context.Context) {
 		go func() {
 			defer s.wg.Done()
 			s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
-			if err := s.handleRequest(ctx, conn); err != nil {
+
+			// Initialize a client object using the connection and the default DB
+			c := &client{conn: conn, db: s.options.dbs[0], reader: bufio.NewReader(conn)}
+			if err := s.handleRequest(ctx, c); err != nil {
 				s.logger.Printf("[ERROR] handleRequest: %v\n", err)
 			}
+			s.logger.Printf("connection closed: %s", conn.RemoteAddr().String())
 		}()
 	}
 }
@@ -133,67 +138,25 @@ func (s *Server) Addr() string {
 	return s.addr
 }
 
-// TODO: We should return error responses if something fails
-func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
+func (s *Server) handleRequest(_ context.Context, c *client) error {
 	defer func() {
-		if err := conn.Close(); err != nil {
+		if err := c.close(); err != nil {
 			s.logger.Printf("unable to close server side connection")
 		}
 	}()
 
-	// Initialize a client object using the connection and the default DB
-	c := &client{conn: conn, db: s.options.dbs[0]}
-
 	for {
-		args, err := s.readCommand(conn)
-		fmt.Println(args, err)
+		err := c.readCommand()
 		if errors.Is(err, io.EOF) {
-			//s.logger.Printf("client %s closed the connection", conn.RemoteAddr().String())
 			return nil
 		} else if err != nil {
 			return fmt.Errorf("readCommand: %w", err)
 		}
 
-		// Load the arguments to the client, to be able to process the request
-		c.args = args
-
 		if err := s.processCommand(c); err != nil {
 			return fmt.Errorf("processCommand: %w", err)
 		}
 	}
-}
-
-func (s *Server) readCommand(conn net.Conn) ([]string, error) {
-	operation, err := resp.ReadOperation(conn)
-	if err != nil {
-		return nil, fmt.Errorf("unable to peak operation: %w", err)
-	}
-
-	s.logger.Printf("parsing operation: %q\n", string(operation))
-	switch operation {
-	case resp.ArrayOp:
-		args, err := s.parseBulkString(conn)
-		if err != nil {
-			return nil, fmt.Errorf("parseBulkString: %w", err)
-		}
-
-		return args, nil
-	default:
-		return nil, fmt.Errorf("unknown opertion type: %q", operation)
-	}
-}
-
-func (s *Server) parseBulkString(conn io.Reader) ([]string, error) {
-	s.logger.Print("starting to parse")
-	b := resp.Array{}
-
-	if _, err := b.ReadFrom(conn); err != nil {
-		return nil, err
-	}
-
-	s.logger.Printf("command sent: %s\n", b.Strings())
-
-	return b.Strings(), nil
 }
 
 func (s *Server) processCommand(c *client) (err error) {

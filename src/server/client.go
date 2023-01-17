@@ -1,6 +1,8 @@
 package server
 
 import (
+	"bufio"
+	"ddia/src/resp"
 	"fmt"
 	"io"
 )
@@ -8,6 +10,9 @@ import (
 type client struct {
 	// conn is the TCP socket that connects with the client
 	conn io.ReadWriteCloser
+	// reader is a wrapper for conn using bufio
+	reader *bufio.Reader
+
 	// args are the commands being sent by the network
 	args []string
 	// dbIdx is the ID of the database where the client is connected to. Default to DB 0
@@ -43,6 +48,44 @@ func (c *client) writeResponse(to io.WriterTo) error {
 	if _, err := to.WriteTo(c.conn); err != nil {
 		return fmt.Errorf("unable to writeResponse to the client: %w", err)
 	}
-
 	return nil
+}
+
+func (c *client) readCommand() error {
+	operation, err := resp.ReadOperation(c.conn)
+	if err != nil {
+		return fmt.Errorf("unable to peak operation: %w", err)
+	}
+
+	switch operation {
+	case resp.ArrayOp:
+		args, err := c.parseBulkString(c.conn)
+		if err != nil {
+			return fmt.Errorf("parseBulkString: %w", err)
+		}
+
+		// Load the arguments to the client, to be able to process the request
+		c.args = args
+
+		return nil
+	case 'P': // Ping, but without being part of SimpleString. I don't know which part of the specs describes this :/
+		var s resp.SimpleString
+		_, err := s.ReadFrom(c.conn)
+		if "P"+s.String() == "PING" {
+			c.args = []string{"PING"}
+		}
+		return err
+	default:
+		return fmt.Errorf("unknown opertion type: %q", operation)
+	}
+}
+
+func (c *client) parseBulkString(conn io.Reader) ([]string, error) {
+	b := resp.Array{}
+	_, err := b.ReadFrom(conn)
+	return b.Strings(), err
+}
+
+func (c *client) close() error {
+	return c.conn.Close()
 }

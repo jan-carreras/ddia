@@ -7,13 +7,14 @@ import (
 	"ddia/src/server"
 	"ddia/src/storage"
 	"ddia/testing/log"
-	"fmt"
+	"errors"
+	"io"
 	"net"
 	"strings"
 	"testing"
 )
 
-func makeReq(t *testing.T) func(string) string {
+func makeReq(t testing.TB) func(string) string {
 	s := testServer(t)
 	conn := testConn(t, s)
 
@@ -22,40 +23,37 @@ func makeReq(t *testing.T) func(string) string {
 	}
 }
 
-func req(t *testing.T, conn net.Conn, req []string) string {
-	t.Helper()
-
+func req(t testing.TB, conn net.Conn, req []string) string {
 	reader := bufio.NewReader(conn)
 
 	r := resp.NewArray(req)
 	_, err := r.WriteTo(conn)
 	if err != nil {
-		t.Fatalf("expecing no error: %q", err.Error())
+		t.Fatalf("expecting no error: %q", err.Error())
 	}
 
 	buf := make([]byte, 1024) // This is going to byte my ass, for sure
 
-	fmt.Println("....")
 	n, err := reader.Read(buf)
-	fmt.Println("....")
-	if err != nil {
-		t.Fatalf("not expecing error: %q", err.Error())
+	if errors.Is(err, io.EOF) {
+	} else if err != nil {
+		t.Fatalf("not expecting error: %q", err.Error())
 	}
 
 	return string(buf[:n])
 }
 
-func testConn(t *testing.T, s *server.Server) net.Conn {
+func testConn(t testing.TB, s *server.Server) net.Conn {
 	conn, err := net.Dial("tcp", s.Addr())
 	if err != nil {
-		t.Fatalf("expecing no error: %q", err.Error())
+		t.Fatalf("expecting no error: %q", err.Error())
 	}
 	t.Cleanup(func() { _ = conn.Close() })
 
 	return conn
 }
 
-func testServer(t *testing.T) *server.Server {
+func testServer(t testing.TB) *server.Server {
 	t.Helper()
 
 	logger := log.ServerLogger()
@@ -68,7 +66,7 @@ func testServer(t *testing.T) *server.Server {
 
 	err = s.Start(context.Background())
 	if err != nil {
-		t.Fatalf("expecing no error: %q", err.Error())
+		t.Fatalf("expecting no error: %q", err.Error())
 	}
 
 	t.Cleanup(func() { _ = s.Stop() })

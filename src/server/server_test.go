@@ -278,3 +278,11 @@ func TestServer_Exists(t *testing.T) {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }
+
+func BenchmarkName(b *testing.B) {
+	req := makeReq(b)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req("set hello world")
+	}
+}
