@@ -55,6 +55,12 @@ func New(configPath string) (Config, error) {
 	return *config, nil
 }
 
+func NewEmpty() Config {
+	return Config{
+		data: make(map[string][]string),
+	}
+}
+
 // Integer returns the value of key as integer. If key does not exist, return def. If not integer, returns ErrInvalidType
 func (c Config) Integer(key string, def int) (int, error) {
 	value, ok := c.Get(key)

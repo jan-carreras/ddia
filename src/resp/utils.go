@@ -1,6 +1,7 @@
 package resp
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
 	"errors"
@@ -98,6 +99,10 @@ func PeakOperation(r io.Reader) (io.Reader, byte, error) {
 	return r, operation, nil
 }
 
+func ReadOperation(r io.Reader) (byte, error) {
+	return readOperation(r)
+}
+
 func readOperation(r io.Reader) (byte, error) {
 	var operation byte
 	err := binary.Read(r, binary.BigEndian, &operation)
@@ -167,4 +172,34 @@ func readFrom(r io.Reader) (readCount int64, s string, err error) {
 	}
 
 	return readCount, s, nil
+}
+
+func readLine(reader *bufio.Reader) ([]byte, error) {
+	line, err := reader.ReadSlice('\n')
+	if err != nil {
+		if !errors.Is(err, bufio.ErrBufferFull) {
+			return nil, err
+		}
+
+		l := make([]byte, len(line))
+		copy(l, line)
+		line, err = reader.ReadBytes('\n')
+		if err != nil {
+			return nil, err
+		}
+
+		l = append(l, line...)
+		line = l
+	}
+
+	if len(line) < 2 || line[len(line)-1] != '\n' || line[len(line)-2] != '\r' {
+		return nil, errors.New("invalid response")
+	}
+
+	return line[:len(line)-2], err
+}
+
+func fprintf(w io.Writer, format string, a ...any) (int64, error) {
+	n, err := fmt.Fprintf(w, format, a...)
+	return int64(n), err
 }

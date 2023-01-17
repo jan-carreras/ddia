@@ -1,11 +1,13 @@
 package server_test
 
 import (
+	"bufio"
 	"context"
 	"ddia/src/resp"
 	"ddia/src/server"
 	"ddia/src/storage"
 	"ddia/testing/log"
+	"fmt"
 	"net"
 	"strings"
 	"testing"
@@ -23,6 +25,8 @@ func makeReq(t *testing.T) func(string) string {
 func req(t *testing.T, conn net.Conn, req []string) string {
 	t.Helper()
 
+	reader := bufio.NewReader(conn)
+
 	r := resp.NewArray(req)
 	_, err := r.WriteTo(conn)
 	if err != nil {
@@ -31,7 +35,9 @@ func req(t *testing.T, conn net.Conn, req []string) string {
 
 	buf := make([]byte, 1024) // This is going to byte my ass, for sure
 
-	n, err := conn.Read(buf)
+	fmt.Println("....")
+	n, err := reader.Read(buf)
+	fmt.Println("....")
 	if err != nil {
 		t.Fatalf("not expecing error: %q", err.Error())
 	}

@@ -30,6 +30,7 @@ type Server struct {
 	// wg is used for the Listen go routine, and for the goroutines processing each request
 	wg       sync.WaitGroup
 	handlers *Handlers
+	config   config.Config
 }
 
 // New returns a new Redis Server configured with the Options provided
@@ -43,9 +44,10 @@ func New(handlers *Handlers, opts ...Option) (*Server, error) {
 		o.apply(options)
 	}
 
+	c := config.NewEmpty()
 	if options.configurationFile != "" {
-		fmt.Println(options.configurationFile, "----")
-		c, err := config.New(options.configurationFile)
+		var err error
+		c, err = config.New(options.configurationFile)
 		if err != nil {
 			return nil, err
 		}
@@ -58,6 +60,7 @@ func New(handlers *Handlers, opts ...Option) (*Server, error) {
 		options:  *options,
 		quit:     make(chan interface{}),
 		handlers: handlers,
+		config:   c,
 	}, nil
 }
 
@@ -131,7 +134,7 @@ func (s *Server) Addr() string {
 }
 
 // TODO: We should return error responses if something fails
-func (s *Server) handleRequest(_ context.Context, conn io.ReadWriteCloser) error {
+func (s *Server) handleRequest(_ context.Context, conn net.Conn) error {
 	defer func() {
 		if err := conn.Close(); err != nil {
 			s.logger.Printf("unable to close server side connection")
@@ -143,6 +146,7 @@ func (s *Server) handleRequest(_ context.Context, conn io.ReadWriteCloser) error
 
 	for {
 		args, err := s.readCommand(conn)
+		fmt.Println(args, err)
 		if errors.Is(err, io.EOF) {
 			//s.logger.Printf("client %s closed the connection", conn.RemoteAddr().String())
 			return nil
@@ -159,8 +163,8 @@ func (s *Server) handleRequest(_ context.Context, conn io.ReadWriteCloser) error
 	}
 }
 
-func (s *Server) readCommand(conn io.Reader) ([]string, error) {
-	reader, operation, err := resp.PeakOperation(conn)
+func (s *Server) readCommand(conn net.Conn) ([]string, error) {
+	operation, err := resp.ReadOperation(conn)
 	if err != nil {
 		return nil, fmt.Errorf("unable to peak operation: %w", err)
 	}
@@ -168,7 +172,7 @@ func (s *Server) readCommand(conn io.Reader) ([]string, error) {
 	s.logger.Printf("parsing operation: %q\n", string(operation))
 	switch operation {
 	case resp.ArrayOp:
-		args, err := s.parseBulkString(reader)
+		args, err := s.parseBulkString(conn)
 		if err != nil {
 			return nil, fmt.Errorf("parseBulkString: %w", err)
 		}
@@ -206,38 +210,40 @@ func (s *Server) processCommand(c *client) (err error) {
 	switch strings.ToUpper(c.command()) {
 	case "":
 		return errors.New("invalid command: length 0")
-	case resp.Ping:
+	case Ping:
 		return s.handlers.Ping(c)
-	case resp.Echo:
+	case Echo:
 		return s.handlers.Echo(c)
-	case resp.Quit:
+	case Quit:
 		return s.handlers.Quit(c)
-	case resp.Select:
+	case Select:
 		return s.handlers.Select(c, s.options.dbs)
-	case resp.Get:
+	case Get:
 		return s.handlers.Get(c)
-	case resp.Set:
+	case Set:
 		return s.handlers.Set(c)
-	case resp.DBSize:
+	case DBSize:
 		return s.handlers.DBSize(c)
-	case resp.Del:
+	case Del:
 		return s.handlers.Del(c)
-	case resp.Incr:
+	case Incr:
 		return s.handlers.Incr(c)
-	case resp.IncrBy:
+	case IncrBy:
 		return s.handlers.IncrBy(c)
-	case resp.Decr:
+	case Decr:
 		return s.handlers.Decr(c)
-	case resp.DecrBy:
+	case DecrBy:
 		return s.handlers.DecrBy(c)
-	case resp.Auth:
+	case Auth:
 		return s.handlers.Auth(c, s.options.password)
-	case resp.FlushDB:
+	case FlushDB:
 		return s.handlers.FlushDB(c)
-	case resp.FlushAll:
+	case FlushAll:
 		return s.handlers.FlushAll(c, s.options.dbs)
-	case resp.Exists:
+	case Exists:
 		return s.handlers.Exists(c)
+	case Config:
+		return s.handlers.Config(c, s.config)
 	default:
 		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)
@@ -252,7 +258,7 @@ func (s *Server) isAuthenticated(c *client) error {
 	//		c.authenticated is true: Means it has previously been authenticated using a AUTH command
 	//      s.options.password is empty: Means that the server does not require a password at all
 	//      The command is AUTH: this command does not require authentication. How would we authenticate otherwise?
-	if s.options.password == "" || c.authenticated || strings.ToUpper(c.command()) == resp.Auth {
+	if s.options.password == "" || c.authenticated || strings.ToUpper(c.command()) == Auth {
 		return nil
 	}
 

@@ -9,24 +9,10 @@ import (
 
 const bufSize = 512
 
-func TestSimpleString_ReadFrom_InvalidPrefix(t *testing.T) {
-	s := resp.SimpleString{}
-
-	input := "(OK\r\n"
-	c, err := s.ReadFrom(strings.NewReader(input))
-	if err == nil {
-		t.Fatalf("expecting error, got no error instead")
-	}
-
-	if want := 1; int(c) != want {
-		t.Fatalf("invalid readCount: %d, want %d", c, want)
-	}
-}
-
 func TestSimpleString_ReadFrom_InvalidDelimiter(t *testing.T) {
 	s := resp.SimpleString{}
 
-	input := "+OK\r"
+	input := "OK\r"
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err == nil {
 		t.Fatalf("expecting error, got no error instead")
@@ -39,7 +25,7 @@ func TestSimpleString_ReadFrom_InvalidDelimiter(t *testing.T) {
 func TestSimpleString_ReadFrom(t *testing.T) {
 	s := resp.SimpleString{}
 
-	input := "+OK\r\n"
+	input := "OK\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -57,9 +43,9 @@ func TestSimpleString_ReadFrom(t *testing.T) {
 func TestSimpleString_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
 	s := resp.SimpleString{}
 
-	payloadSize := bufSize - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize - 2 // -2 because \r\n (+2)
 	payload := strings.Repeat("h", payloadSize)
-	input := "+" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -76,9 +62,9 @@ func TestSimpleString_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
 func TestSimpleString_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
 	s := resp.SimpleString{}
 
-	payloadSize := bufSize*2 - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize*2 - 2 // -2 because \r\n (+2)
 	payload := strings.Repeat("h", payloadSize)
-	input := "+" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -95,9 +81,9 @@ func TestSimpleString_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
 func TestSimpleString_ReadFrom_PayloadHugeBuffer(t *testing.T) {
 	s := resp.SimpleString{}
 
-	payloadSize := bufSize*42 - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize*42 - 2 // -2 because  \r\n (+2)
 	payload := strings.Repeat("h", payloadSize)
-	input := "+" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -115,9 +101,9 @@ func TestSimpleString_ReadFrom_PayloadHugeBuffer(t *testing.T) {
 func TestSimpleString_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
 	s := resp.SimpleString{}
 
-	payloadSize := bufSize + (bufSize / 2) - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize + (bufSize / 2) - 2 // -2 because \r\n (+2)
 	payload := strings.Repeat("h", payloadSize)
-	input := "+" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {

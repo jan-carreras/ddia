@@ -59,18 +59,15 @@ func (b *Array) WriteTo(w io.Writer) (int64, error) {
 
 // ReadFrom reads an Array object from r. It matches io.ReaderFrom interface
 func (b *Array) ReadFrom(r io.Reader) (int64, error) {
-	n, err := b.readFrom(r)
-	if err != nil {
-		return 0, fmt.Errorf("%w: %v", ErrParsingError, err)
-	}
-
-	return n, nil
+	return b.readFrom(r)
 }
 
-func (b *Array) readFrom(r io.Reader) (int64, error) {
-	if err := checkOperation(r, ArrayOp); err != nil {
-		return 0, fmt.Errorf("checkOperation: %w", err)
-	}
+func (b *Array) readFrom(r io.Reader) (n int64, err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("%w: %v", ErrParsingError, err)
+		}
+	}()
 
 	arrayLength, err := readLength(r)
 	if err != nil {
@@ -78,7 +75,7 @@ func (b *Array) readFrom(r io.Reader) (int64, error) {
 	}
 
 	for word := 0; word < arrayLength; word++ {
-		r, operation, err := PeakOperation(r)
+		operation, err := ReadOperation(r)
 		if err != nil {
 			return 0, fmt.Errorf("unable to read operator: %v", err)
 		}
@@ -94,9 +91,9 @@ func (b *Array) readFrom(r io.Reader) (int64, error) {
 			b.strings = append(b.strings, s.String())
 		case IntegerOp:
 			i := Integer{}
-			_, err := i.ReadFrom(r)
+			n, err := i.ReadFrom(r)
 			if err != nil {
-				return 0, fmt.Errorf("int.ReadFrom: %v", err)
+				return n, fmt.Errorf("int.ReadFrom: %v", err)
 			}
 
 			b.strings = append(b.strings, i.String())

@@ -3,6 +3,7 @@ package server
 import (
 	"ddia/src/logger"
 	"ddia/src/resp"
+	"ddia/src/server/config"
 	"errors"
 	"fmt"
 	"strconv"
@@ -335,4 +336,32 @@ func (h *Handlers) Exists(c *client) error {
 	}
 
 	return c.writeResponse(resp.NewInteger(1))
+}
+
+// Config returns stuff from the Config.
+//
+// TODO: This command has been included to try to make redis-benchmark cli to work. I'm returning hardcoded stuff
+// in the hope that the command will work. Without this there is no hope
+func (h *Handlers) Config(c *client, config config.Config) error {
+	if err := c.requiredArgs(2); err != nil {
+		return err
+	}
+
+	cmd := c.args[1]
+	if cmd == "GET" {
+		key := c.args[2]
+		var value string
+		switch key {
+		case "save":
+			value = "3600 1 300 100 60 10000"
+		case "appendonly":
+			value = "no"
+		default:
+			value, _ = config.Get(key)
+		}
+		return c.writeResponse(resp.NewSimpleString(value))
+	}
+
+	err := resp.NewError(fmt.Sprintf("ERR unknown subcommand '%s'.", cmd))
+	return c.writeResponse(err)
 }

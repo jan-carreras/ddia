@@ -7,19 +7,6 @@ import (
 	"testing"
 )
 
-func TestInteger_ReadFrom_InvalidPrefix(t *testing.T) {
-	s := resp.Integer{}
-
-	input := "(1234\r\n"
-	c, err := s.ReadFrom(strings.NewReader(input))
-	if err == nil {
-		t.Fatalf("expecting error, got %v", err)
-	}
-	if want := 1; int(c) != want {
-		t.Fatalf("invalid number of characters read %d, want %d", c, want)
-	}
-}
-
 func TestInteger_ReadFrom_InvalidDelimiter(t *testing.T) {
 	s := resp.Integer{}
 
@@ -36,7 +23,7 @@ func TestInteger_ReadFrom_InvalidDelimiter(t *testing.T) {
 func TestInteger_ReadFrom(t *testing.T) {
 	s := resp.Integer{}
 
-	input := ":1234\r\n"
+	input := "1234\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -54,9 +41,9 @@ func TestInteger_ReadFrom(t *testing.T) {
 func TestInteger_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
 	s := resp.Integer{}
 
-	payloadSize := bufSize - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize - 2 // -2 because \r\n (+2)
 	payload := strings.Repeat("5", payloadSize)
-	input := ":" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -73,9 +60,9 @@ func TestInteger_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
 func TestInteger_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
 	s := resp.Integer{}
 
-	payloadSize := bufSize*2 - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize*2 - 2 // -2 because \r\n (+2)
 	payload := strings.Repeat("h", payloadSize)
-	input := ":" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -92,9 +79,9 @@ func TestInteger_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
 func TestInteger_ReadFrom_PayloadHugeBuffer(t *testing.T) {
 	s := resp.Integer{}
 
-	payloadSize := bufSize*42 - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize*42 - 2 // -2 because \r\n (+2)
 	payload := strings.Repeat("6", payloadSize)
-	input := ":" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -111,9 +98,9 @@ func TestInteger_ReadFrom_PayloadHugeBuffer(t *testing.T) {
 func TestInteger_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
 	s := resp.Integer{}
 
-	payloadSize := bufSize + (bufSize / 2) - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize + (bufSize / 2) - 2 // -2 because \r\n (+2)
 	payload := strings.Repeat("4", payloadSize)
-	input := ":" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {

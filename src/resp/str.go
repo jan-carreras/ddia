@@ -20,30 +20,22 @@ func (b *Str) String() string { return b.s }
 
 // WriteTo writes the information on Str and dumps it into the Writer
 func (b *Str) WriteTo(w io.Writer) (int64, error) {
-	n, err := fmt.Fprintf(w, "%c%d\r\n%s\r\n", byte(BulkStringOp), len(b.s), b.s)
-	if err != nil {
-		return 0, fmt.Errorf("%w: writing string operator: %v", ErrEncodingError, err)
-	}
-
-	return int64(n), nil
+	return fprintf(w, "%c%d\r\n%s\r\n", byte(BulkStringOp), len(b.s), b.s)
 }
 
 // ReadFrom reads from the Reader and loads the Str object
 func (b *Str) ReadFrom(r io.Reader) (int64, error) {
-	n, err := b.readFrom(r)
-	if err != nil {
-		return n, fmt.Errorf("%w: %v", ErrParsingError, err)
-	}
-
-	return n, nil
+	return b.readFrom(r)
 }
 
-func (b *Str) readFrom(r io.Reader) (int64, error) {
-	var readCount int64
+func (b *Str) readFrom(r io.Reader) (n int64, err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("%w: %v", ErrParsingError, err)
+		}
+	}()
 
-	if err := checkOperation(r, BulkStringOp); err != nil {
-		return readCount, fmt.Errorf("checkOperation: %w", err)
-	}
+	var readCount int64
 
 	strLen, err := readLength(r)
 	if err != nil {

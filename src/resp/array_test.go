@@ -11,7 +11,7 @@ import (
 func TestBulkStr_ReadFrom(t *testing.T) {
 	bulk := resp.Array{}
 
-	input := strings.NewReader("*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n")
+	input := strings.NewReader("2\r\n$5\r\nhello\r\n$5\r\nworld\r\n")
 	_, err := bulk.ReadFrom(input)
 	if err != nil {
 		t.Fatalf("ReadFrom: %v", err)
@@ -31,22 +31,22 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 	}{
 		{
 			name:              "missing array length",
-			input:             "*\r\n$5\r\nhello\r\n",
+			input:             "\r\n$5\r\nhello\r\n",
 			expectErrContains: "readLength",
 		},
 		{
 			name:              "empty input",
-			input:             "*",
+			input:             "",
 			expectErrContains: "readLength",
 		},
 		{
 			name:              "missing elements",
-			input:             "*10\r\n",
+			input:             "10\r\n",
 			expectErrContains: "unable to read operator",
 		},
 		{
 			name:              "element is string but malformed",
-			input:             "*1\r\n$5\r\n",
+			input:             "1\r\n$5\r\n",
 			expectErrContains: "",
 		},
 	}
@@ -61,7 +61,7 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 			}
 
 			if !errors.Is(err, resp.ErrParsingError) {
-				t.Fatalf("invalid error returned: %v, expecting %v", err, resp.ErrParsingError)
+				t.Fatalf("invalid error returned: %q, expecting %q", err, resp.ErrParsingError)
 			}
 
 			if !strings.Contains(err.Error(), tt.expectErrContains) {
@@ -75,7 +75,7 @@ func TestBulkStr_ReadFrom_Errors(t *testing.T) {
 func TestBulkStr_StringAndBytes(t *testing.T) {
 	bulk := resp.Array{}
 
-	_, err := bulk.ReadFrom(strings.NewReader("*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"))
+	_, err := bulk.ReadFrom(strings.NewReader("2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"))
 	if err != nil {
 		t.Fatalf("ReadFrom: %v", err)
 	}
@@ -93,7 +93,8 @@ func TestBulkStr_StringAndBytes(t *testing.T) {
 func TestBulkStr_WriteTo(t *testing.T) {
 	bulk := resp.Array{}
 
-	text := "*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
+	text := "2\r\n$5\r\nhello\r\n$5\r\nworld\r\n"
+	expected := "*" + text
 
 	_, err := bulk.ReadFrom(strings.NewReader(text))
 	if err != nil {
@@ -110,7 +111,7 @@ func TestBulkStr_WriteTo(t *testing.T) {
 		t.Fatalf("invalid n: %d, want non-zero instead", n)
 	}
 
-	if buf.String() != text {
+	if buf.String() != expected {
 		t.Fatalf("invalid text: %q, want %q", buf.String(), text)
 	}
 }

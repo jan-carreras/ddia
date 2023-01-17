@@ -10,7 +10,7 @@ import (
 
 func TestStr_ReadFrom(t *testing.T) {
 	s := resp.Str{}
-	_, err := s.ReadFrom(strings.NewReader("$5\r\nhello\r\n"))
+	_, err := s.ReadFrom(strings.NewReader("5\r\nhello\r\n"))
 	if err != nil {
 		t.Fatalf("error unexpected: %v. want no error", err)
 	}
@@ -22,7 +22,7 @@ func TestStr_ReadFrom(t *testing.T) {
 
 func TestStr_ReadFrom_EmptyString(t *testing.T) {
 	s := resp.Str{}
-	_, err := s.ReadFrom(strings.NewReader("$0\r\n\r\n"))
+	_, err := s.ReadFrom(strings.NewReader("0\r\n\r\n"))
 	if err != nil {
 		t.Fatalf("error unexpected: %v. want no error", err)
 	}
@@ -39,28 +39,18 @@ func TestStr_ReadFrom_Errors(t *testing.T) {
 		expectedErrContains string
 	}{
 		{
-			name:                "missing operation type",
-			input:               "\r\nhello\r\n",
-			expectedErrContains: "unknown operation",
-		},
-		{
-			name:                "invalid operation type",
-			input:               "?\r\nhello\r\n",
-			expectedErrContains: "unknown operation",
-		},
-		{
 			name:                "invalid length",
-			input:               "$\r\nhello\r\n",
+			input:               "\r\nhello\r\n",
 			expectedErrContains: "readLength",
 		},
 		{
 			name:                "length and string mismatch: string too short",
-			input:               "$10\r\nhello\r\n",
+			input:               "10\r\nhello\r\n",
 			expectedErrContains: "insufficient data read",
 		},
 		{
 			name:                "length and string mismatch: string too long",
-			input:               "$5\r\nhello world\r\n",
+			input:               "5\r\nhello world\r\n",
 			expectedErrContains: "unexpected character",
 		},
 	}
@@ -78,7 +68,7 @@ func TestStr_ReadFrom_Errors(t *testing.T) {
 }
 
 func TestStr_WriteTo(t *testing.T) {
-	original := "$5\r\nhello\r\n"
+	original := "5\r\nhello\r\n"
 	s := resp.Str{}
 	_, err := s.ReadFrom(strings.NewReader(original))
 	if err != nil {
@@ -91,13 +81,13 @@ func TestStr_WriteTo(t *testing.T) {
 		t.Fatalf("error unexpected: %v. want no error", err)
 	}
 
-	if want := original; buf.String() != want {
+	if want := "$5\r\nhello\r\n"; buf.String() != want {
 		t.Fatalf("invalid response: %q want %q", buf.String(), want)
 	}
 }
 
 func TestStr_EmptyString(t *testing.T) {
-	original := "$0\r\n\r\n"
+	original := "0\r\n\r\n"
 	s := resp.Str{}
 	_, err := s.ReadFrom(strings.NewReader(original))
 	if err != nil {
@@ -110,7 +100,7 @@ func TestStr_EmptyString(t *testing.T) {
 		t.Fatalf("error unexpected: %v. want no error", err)
 	}
 
-	if want := original; buf.String() != want {
+	if want := "$0\r\n\r\n"; buf.String() != want {
 		t.Fatalf("invalid response: %q want %q", buf.String(), want)
 	}
 }
