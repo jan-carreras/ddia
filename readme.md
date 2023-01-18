@@ -4,14 +4,14 @@ This repository is a playground where I implement ideas from the book Designing 
 
 ## Objective
 
-Implement Redis 1.0 command set (see [`commands.md`]) for educative purposes.
-[`commands.md`](https://github.com/jan-carreras/ddia/blob/master/commands.md)
+Implement Redis 1.0 command set (see [`commands.md`](https://github.com/jan-carreras/ddia/blob/master/commands.md))
+for educative purposes.
 
 
 ## Design
 
-This project will implement ~~both a Client and~~ a Redis Server using the [Redis Serialization Protocol].
-[Redis Serialization Protocol](https://redis.io/docs/reference/protocol-spec/)
+This project will implement ~~both a Client and~~ a Redis Server using the
+[Redis Serialization Protocol](https://redis.io/docs/reference/protocol-spec/).
 
 Backwards compatibility: The server must be able to "talk" with original `redis-cli` and `redis-benchmark` tools,
 behaving as a real server.
