@@ -1,8 +1,6 @@
 package resp
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -11,9 +9,6 @@ import (
 
 // ErrParsingError returned when we cannot parse some information
 var ErrParsingError = errors.New("parsing error")
-
-// ErrEncodingError returned when we cannot encode some information
-var ErrEncodingError = errors.New("encoding error")
 
 // dataType is the interface to be implemented by each datatype on RESP
 type dataType interface {
@@ -84,26 +79,8 @@ func ignoreDelimiters(r io.Reader) error {
 	return nil
 }
 
-// PeakOperation returns the next character on the reader, and a new reader with
-// that character in the stream.
-func PeakOperation(r io.Reader) (io.Reader, byte, error) {
-	var operation byte
-	if err := binary.Read(r, binary.BigEndian, &operation); err != nil {
-		return r, 0, fmt.Errorf("unable to read operator: %w", err)
-	}
-
-	buf := &bytes.Buffer{}
-	buf.WriteByte(operation)
-	r = io.MultiReader(buf, r) // Load again the read character into the reader stream
-
-	return r, operation, nil
-}
-
+// ReadOperation returns the operation type on the stream (eg: +, - , *, ...)
 func ReadOperation(r io.Reader) (byte, error) {
-	return readOperation(r)
-}
-
-func readOperation(r io.Reader) (byte, error) {
 	var operation byte
 	err := binary.Read(r, binary.BigEndian, &operation)
 	if err != nil {
@@ -111,23 +88,6 @@ func readOperation(r io.Reader) (byte, error) {
 	}
 
 	return operation, nil
-}
-
-func checkOperation(r io.Reader, expectedOperation byte) error {
-	operation, err := readOperation(r)
-	if err != nil {
-		return fmt.Errorf("readOperation: %w", err)
-	}
-
-	if operation != expectedOperation {
-		return fmt.Errorf(
-			"unknown operation: expecting %q, have %q",
-			expectedOperation,
-			operation,
-		)
-	}
-
-	return nil
 }
 
 // ignoreDelimiterCharacters ignores the last two characters if they are \r\n or fails
@@ -172,31 +132,6 @@ func readFrom(r io.Reader) (readCount int64, s string, err error) {
 	}
 
 	return readCount, s, nil
-}
-
-func readLine(reader *bufio.Reader) ([]byte, error) {
-	line, err := reader.ReadSlice('\n')
-	if err != nil {
-		if !errors.Is(err, bufio.ErrBufferFull) {
-			return nil, err
-		}
-
-		l := make([]byte, len(line))
-		copy(l, line)
-		line, err = reader.ReadBytes('\n')
-		if err != nil {
-			return nil, err
-		}
-
-		l = append(l, line...)
-		line = l
-	}
-
-	if len(line) < 2 || line[len(line)-1] != '\n' || line[len(line)-2] != '\r' {
-		return nil, errors.New("invalid response")
-	}
-
-	return line[:len(line)-2], err
 }
 
 func fprintf(w io.Writer, format string, a ...any) (int64, error) {

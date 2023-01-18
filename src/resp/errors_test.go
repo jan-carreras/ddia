@@ -7,23 +7,10 @@ import (
 	"testing"
 )
 
-func TestError_ReadFrom_InvalidPrefix(t *testing.T) {
-	s := resp.Error{}
-
-	input := "(OK\r\n"
-	c, err := s.ReadFrom(strings.NewReader(input))
-	if err == nil {
-		t.Fatalf("expecting error, got nil instead")
-	}
-	if want := 1; int(c) != want {
-		t.Fatalf("invalid bytes read: %d want %d", c, want)
-	}
-}
-
 func TestError_ReadFrom_InvalidDelimiter(t *testing.T) {
 	s := resp.Error{}
 
-	input := "-ERR unknown command 'helloworld'\r"
+	input := "ERR unknown command 'helloworld'\r"
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err == nil {
 		t.Fatalf("expecting error, got nil instead")
@@ -37,7 +24,7 @@ func TestError_ReadFrom_InvalidDelimiter(t *testing.T) {
 func TestError_ReadFrom(t *testing.T) {
 	s := resp.Error{}
 
-	input := "-WRONGTYPE Operation against a key holding the wrong kind of value\r\n"
+	input := "WRONGTYPE Operation against a key holding the wrong kind of value\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -57,9 +44,9 @@ func TestError_ReadFrom(t *testing.T) {
 func TestError_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
 	s := resp.Error{}
 
-	payloadSize := bufSize - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize - 2 // -2 because \r\n
 	payload := strings.Repeat("h", payloadSize)
-	input := "-" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -76,9 +63,9 @@ func TestError_ReadFrom_PayloadEqualToBuffer(t *testing.T) {
 func TestError_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
 	s := resp.Error{}
 
-	payloadSize := bufSize*2 - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize*2 - 2 // -2 because \r\n
 	payload := strings.Repeat("h", payloadSize)
-	input := "-" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -95,9 +82,9 @@ func TestError_ReadFrom_PayloadTwiceBuffer(t *testing.T) {
 func TestError_ReadFrom_PayloadHugeBuffer(t *testing.T) {
 	s := resp.Error{}
 
-	payloadSize := bufSize*42 - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize*42 - 2 // -2 because \r\n
 	payload := strings.Repeat("h", payloadSize)
-	input := "-" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {
@@ -114,9 +101,9 @@ func TestError_ReadFrom_PayloadHugeBuffer(t *testing.T) {
 func TestError_ReadFrom_BigPayloadNotCompleteBuffers(t *testing.T) {
 	s := resp.Error{}
 
-	payloadSize := bufSize + (bufSize / 2) - 3 // -3 because we have the Operation (+1) + \r\n (+2)
+	payloadSize := bufSize + (bufSize / 2) - 2 // -2 because \r\n
 	payload := strings.Repeat("h", payloadSize)
-	input := "-" + payload + "\r\n"
+	input := payload + "\r\n"
 
 	c, err := s.ReadFrom(strings.NewReader(input))
 	if err != nil {

@@ -55,6 +55,7 @@ func New(configPath string) (Config, error) {
 	return *config, nil
 }
 
+// NewEmpty returns an empty configuration file. Useful when you don't have a file to read from
 func NewEmpty() Config {
 	return Config{
 		data: make(map[string][]string),
