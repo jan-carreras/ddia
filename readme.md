@@ -10,25 +10,34 @@ Implement Redis 1.0 command set (see [`commands.md`]) for educative purposes.
 
 ## Design
 
-This project will implement both a Client and a Server using the [Redis Serialization Protocol].
-
-Backwards compatibility: Both the client and the server must be compatible with original Redis client/server.
-
+This project will implement ~~both a Client and~~ a Redis Server using the [Redis Serialization Protocol].
 [Redis Serialization Protocol](https://redis.io/docs/reference/protocol-spec/)
+
+Backwards compatibility: The server must be able to "talk" with original `redis-cli` and `redis-benchmark` tools,
+behaving as a real server.
+
 
 ## TODO
 
-* [x] Gracefully shutdown of the server
-* [x] Do not close the connection on each command
-* [ ] Be able to define read/write timeouts on the server side to prevent DoS
-* [x] Store values in-memory in a key-value store (map + mutexes)
-* [ ] Benchmark the key value store and compare it with Redis
+* Setup
+    * [x] Gracefully shutdown of the server
+    * [x] Do not close the connection on each command
+    * [x] Store values in-memory in a key-value store (map + mutexes)
+    * [x] Benchmark the key value store and compare it with Redis
+* Storage
+    * [ ] Persist using Append Only File
+    * [ ] Write to the WAL before sending OK confirmation to the client
+    * [ ] Persist using point-in-time Snapshots
+    * [ ] Be able to restart the server and keep the state (even after crash)
+* Replication
+    * [ ] Read-Only replica support
+* [ ] TTL: Implement expiration mechanism
+
+### Secondary objectives
+
 * [ ] Create my own hashmap implementation
-* [ ] Be able to persist data even after graceful restart
-* [ ] Be able to persist data even after a kill -9
-* [ ] Be able to have a read-replica
+* [ ] Be able to define read/write timeouts on the server side to prevent DoS
 * [ ] Implement a heartbeat system to monitor the status of the system
-* [ ] Allow client to define how many replicas must commit the information before OK
 
 ## Commands
 
