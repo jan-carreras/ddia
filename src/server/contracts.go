@@ -52,7 +52,7 @@ type stringOperations interface {
 	Decrement(key string) (string, error)
 	// FlushDB removes all keys in the database
 	FlushDB() error
-	// Exists returns ErrNotFound if key does not exists, return null otherwise
+	// Exists returns ErrNotFound if key does not exist, return null otherwise
 	Exists(key string) error
 }
 
