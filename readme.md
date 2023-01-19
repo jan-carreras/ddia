@@ -17,13 +17,14 @@ Backwards compatibility: The server must be able to "talk" with original `redis-
 behaving as a real server.
 
 
-## TODO
+## Objectives
 
 * Setup
     * [x] Gracefully shutdown of the server
     * [x] Do not close the connection on each command
     * [x] Store values in-memory in a key-value store (map + mutexes)
     * [x] Benchmark the key value store and compare it with Redis
+    * [ ] OOM management. Invalidate older keys or swap to disk
 * Storage
     * [ ] Persist using Append Only File
     * [ ] Write to the WAL before sending OK confirmation to the client
