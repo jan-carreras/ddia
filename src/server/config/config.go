@@ -16,10 +16,14 @@ import (
 // it's a function because we cannot declare slices as `const` and I don't like to have global state.
 func options() []option {
 	return []option{
+		{name: "port", flags: singleFlag},
 		{name: "databases", flags: singleFlag},
 		{name: "requirepass", flags: singleFlag},
 		{name: "save", flags: multipleFlag},
 		{name: "include", flags: multipleFlag},
+		{name: "appendonly", flags: singleFlag},
+		{name: "appendfsync", flags: singleFlag},
+		{name: "appenddirname", flags: singleFlag},
 	}
 }
 

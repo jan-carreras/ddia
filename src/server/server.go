@@ -36,6 +36,7 @@ type Server struct {
 
 // New returns a new Redis Server configured with the Options provided
 func New(handlers *Handlers, opts ...Option) (*Server, error) {
+	// Default options
 	options := &options{
 		logger: logger.NewDiscard(),
 		host:   "localhost",

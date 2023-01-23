@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 //go:embed commands.json
@@ -26,6 +27,7 @@ func init() {
 }
 
 func command(name string) (cmd, bool) {
+	name = strings.ToLower(name)
 	for _, c := range commands {
 		if c.Name == name {
 			return c, true

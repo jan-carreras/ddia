@@ -1,3 +1,4 @@
 dump.rdb
 playground
 .DS_Store
+redis.aof
