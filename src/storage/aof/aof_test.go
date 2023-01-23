@@ -1,6 +1,7 @@
 package aof_test
 
 import (
+	"context"
 	"ddia/src/storage/aof"
 	"os"
 	"path"
@@ -14,7 +15,7 @@ func TestWrite(t *testing.T) {
 		t.Fatalf("unable to open file: %v", err)
 	}
 
-	a := aof.NewAppendOnlyFile(f, aof.AlwaysSync)
+	a := aof.NewAppendOnlyFile(context.Background(), f, aof.AlwaysSync)
 	n, err := a.Write([]byte("some data"))
 	if err != nil {
 		t.Fatalf("expecting no error: %v", err)

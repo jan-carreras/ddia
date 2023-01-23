@@ -24,6 +24,8 @@ func main() {
 }
 
 func startServer() error {
+	ctx := context.Background()
+
 	// Configuration
 	cfg := config.NewEmpty()
 	if len(os.Args) == 2 {
@@ -71,7 +73,7 @@ func startServer() error {
 		}
 		defer func() { _ = f.Close() }()
 
-		aof = aof2.NewAppendOnlyFile(f, sync)
+		aof = aof2.NewAppendOnlyFile(ctx, f, sync)
 	}
 
 	handlers := server.NewHandlers(l, aof)

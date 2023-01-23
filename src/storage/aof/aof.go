@@ -2,7 +2,9 @@
 package aof
 
 import (
+	"context"
 	"io"
+	"time"
 )
 
 type writeSyncer interface {
@@ -27,18 +29,40 @@ const (
 // AppendOnlyFile stores the commands being executed in the Redis server into a
 // file. It allows various disk synchronization mechanisms
 type AppendOnlyFile struct {
-	file    writeSyncer
-	options options
+	file      writeSyncer
+	options   options
+	lastWrite time.Time // Only updated when option EverySecondSync is used
 }
 
 // NewAppendOnlyFile creates an AppendOnlyFile. You can pass io.Discard to the writeSyncer if you're not interested
 // into saving any data.
-func NewAppendOnlyFile(f writeSyncer, o options) *AppendOnlyFile {
-	if o == EverySecondSync || o == NeverSync {
-		panic("not supported")
+func NewAppendOnlyFile(ctx context.Context, f writeSyncer, o options) *AppendOnlyFile {
+	aof := &AppendOnlyFile{file: f, options: o}
+
+	if o == EverySecondSync {
+		go aof.startTicker(ctx)
 	}
 
-	return &AppendOnlyFile{file: f, options: o}
+	return aof
+}
+
+func (a *AppendOnlyFile) startTicker(ctx context.Context) {
+	var lastSync time.Time
+	ticker := time.Tick(time.Second) // nolint: staticcheck
+
+	for {
+		select {
+		case <-ticker:
+			if !lastSync.Equal(a.lastWrite) {
+				if err := a.file.Sync(); err != nil {
+					panic(err)
+				}
+				lastSync = a.lastWrite
+			}
+		case <-ctx.Done():
+			return // stop goroutine
+		}
+	}
 }
 
 // Write data into the AOF file
@@ -52,6 +76,8 @@ func (a *AppendOnlyFile) Write(data []byte) (int, error) {
 		if err := a.file.Sync(); err != nil {
 			return n, err
 		}
+	} else if a.options == EverySecondSync {
+		a.lastWrite = time.Now()
 	}
 
 	return n, nil

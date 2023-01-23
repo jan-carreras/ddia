@@ -18,7 +18,7 @@ func TestServer_AppendOnlyFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error not expected: %v", err)
 	}
-	appendOnlyFile := aof.NewAppendOnlyFile(f, aof.AlwaysSync)
+	appendOnlyFile := aof.NewAppendOnlyFile(context.Background(), f, aof.AlwaysSync)
 
 	logger := log.ServerLogger()
 	handlers := server.NewHandlers(logger, appendOnlyFile)
