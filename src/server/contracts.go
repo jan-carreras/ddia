@@ -32,9 +32,15 @@ var ErrOperationNotPermitted = errors.New("operation not permitted")
 
 // Storage defines the interface that the Server needs to store things
 type Storage interface {
+	atomic
 	stringOperations
 	genericOperations
 	serverOperations
+}
+
+type atomic interface {
+	Lock()
+	Unlock()
 }
 
 type stringOperations interface {
@@ -44,12 +50,6 @@ type stringOperations interface {
 	Set(key, value string) error
 	// IncrementBy increments the counter key by amount, returning the new value
 	IncrementBy(key string, amount int) (string, error)
-	// Increment increments the counter key by 1, returning the new value
-	Increment(key string) (string, error)
-	// DecrementBy decrements the counter key by amount, returning the new value
-	DecrementBy(key string, amount int) (string, error)
-	// Decrement decrements the counter key by 1, returning the new value
-	Decrement(key string) (string, error)
 	// FlushDB removes all keys in the database
 	FlushDB() error
 	// Exists returns ErrNotFound if key does not exist, return null otherwise

@@ -78,6 +78,16 @@ func NewInMemory() *InMemory {
 	}
 }
 
+// Lock acquires the lock in the DB. You must call Unlock after its usage
+func (m *InMemory) Lock() {
+	m.recordsMux.Lock()
+}
+
+// Unlock releases the lock in the DB. Calling it if the DB is not locked causes a panic
+func (m *InMemory) Unlock() {
+	m.recordsMux.Unlock()
+}
+
 // Set stores or overwrites the key with the given value
 func (m *InMemory) Set(key, value string) error {
 	m.recordsMux.Lock()
