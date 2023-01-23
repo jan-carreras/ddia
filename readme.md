@@ -26,8 +26,8 @@ behaving as a real server.
     * [x] Benchmark the key value store and compare it with Redis
     * [ ] OOM management. Invalidate older keys or swap to disk
 * Storage
-    * [ ] Persist using Append Only File
-    * [ ] Write to the WAL before sending OK confirmation to the client
+    * [x] Persist using Append Only File
+    * [x] Write to the WAL before sending OK confirmation to the client
     * [ ] Persist using point-in-time Snapshots
     * [ ] Be able to restart the server and keep the state (even after crash)
 * Features

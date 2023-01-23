@@ -8,7 +8,7 @@ import (
 )
 
 type writeSyncer interface {
-	io.Writer
+	io.WriteCloser
 	Sync() error
 }
 
@@ -81,4 +81,28 @@ func (a *AppendOnlyFile) Write(data []byte) (int, error) {
 	}
 
 	return n, nil
+}
+
+// Close the AOF
+func (a *AppendOnlyFile) Close() error {
+	_ = a.file.Sync()
+	return a.file.Close()
+}
+
+// NoOpAOF no-operation AOF. Everything ends up in /dev/null
+type NoOpAOF struct{}
+
+// NewNoOpAOF new NoOpAOF
+func NewNoOpAOF() *NoOpAOF {
+	return &NoOpAOF{}
+}
+
+// Write does nothing
+func (a *NoOpAOF) Write(data []byte) (int, error) {
+	return len(data), nil
+}
+
+// Close does nothing
+func (a *NoOpAOF) Close() error {
+	return nil
 }

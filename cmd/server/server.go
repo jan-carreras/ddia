@@ -23,25 +23,19 @@ func main() {
 	}
 }
 
-func startServer() error {
+func startServer() (err error) {
 	ctx := context.Background()
 
 	// Configuration
 	cfg := config.NewEmpty()
 	if len(os.Args) == 2 {
-		configPath := os.Args[1]
-
-		var err error
-		cfg, err = config.New(configPath)
+		cfg, err = config.New(os.Args[1]) // configPath
 		if err != nil {
 			return err
 		}
 	}
 
-	l, err := getLogger(cfg)
-	if err != nil {
-		return err
-	}
+	l := getLogger(cfg)
 
 	options, err := readOptions(cfg)
 	if err != nil {
@@ -49,42 +43,22 @@ func startServer() error {
 	}
 
 	// Append Only File
-	aof := io.Discard
-	if cfg.GetD("appendonly", "no") == "yes" {
-		sync := aof2.NeverSync //nolint: ineffassign
-		switch v := cfg.GetD("appendfsync", "always"); v {
-		case "always":
-			sync = aof2.AlwaysSync
-		case "no":
-			sync = aof2.NeverSync
-		case "everysec":
-			sync = aof2.EverySecondSync
-		default:
-			return fmt.Errorf("appendfsync %q not supported", v)
-		}
-
-		appenddirname := "./redis.aof"
-		if path, ok := cfg.Get("appenddirname"); ok {
-			appenddirname = path
-		}
-		f, err := os.OpenFile(appenddirname, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
-		if err != nil {
-			return err
-		}
-		defer func() { _ = f.Close() }()
-
-		aof = aof2.NewAppendOnlyFile(ctx, f, sync)
+	aof, err := getAOF(ctx, cfg)
+	if err != nil {
+		return err
 	}
+	defer func() { _ = aof.Close() }()
 
+	// HANDLERS
 	handlers := server.NewHandlers(l, aof)
 
-	//
+	// SERVER
 	s, err := server.New(handlers, options...)
-
 	if err != nil {
 		return fmt.Errorf("server.New: %w", err)
 	}
 
+	// Start the server
 	err = s.Start(context.Background())
 	if err != nil {
 		return fmt.Errorf("start: %w", err)
@@ -95,9 +69,37 @@ func startServer() error {
 	return nil
 }
 
-func getLogger(_ config.Config) (logger.Logger, error) {
-	l := log.New(os.Stdout, "[server] ", 0)
-	return l, nil
+func getAOF(ctx context.Context, cfg config.Config) (aof io.WriteCloser, err error) {
+	if cfg.GetD("appendonly", "no") != "yes" {
+		return aof2.NewNoOpAOF(), nil // AOF is disabled
+	}
+
+	sync := aof2.NeverSync //nolint: ineffassign
+	switch v := cfg.GetD("appendfsync", "always"); v {
+	case "always":
+		sync = aof2.AlwaysSync
+	case "no":
+		sync = aof2.NeverSync
+	case "everysec":
+		sync = aof2.EverySecondSync
+	default:
+		return nil, fmt.Errorf("appendfsync %q not supported", v)
+	}
+
+	f, err := os.OpenFile(
+		cfg.GetD("appenddirname", "./redis.aof"),
+		os.O_CREATE|os.O_APPEND|os.O_WRONLY,
+		0600,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return aof2.NewAppendOnlyFile(ctx, f, sync), nil
+}
+
+func getLogger(_ config.Config) logger.Logger {
+	return log.New(os.Stdout, "[server] ", 0)
 }
 
 func readOptions(cfg config.Config) ([]server.Option, error) {
@@ -110,8 +112,7 @@ func readOptions(cfg config.Config) ([]server.Option, error) {
 	}
 
 	// Logger
-	l := log.New(os.Stdout, "[server] ", 0)
-	options = append(options, server.WithLogger(l))
+	options = append(options, server.WithLogger(getLogger(cfg)))
 
 	// DBs
 	databases, err := cfg.Integer("databases", 16)
