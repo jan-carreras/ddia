@@ -6,6 +6,7 @@ import (
 	"ddia/src/server/config"
 	"errors"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -14,11 +15,12 @@ import (
 // as a public function in the handler file.
 type Handlers struct {
 	logger logger.Logger
+	aof    io.Writer
 }
 
 // NewHandlers returns a Handlers
-func NewHandlers(logger logger.Logger) *Handlers {
-	return &Handlers{logger: logger}
+func NewHandlers(logger logger.Logger, aof io.Writer) *Handlers {
+	return &Handlers{logger: logger, aof: aof}
 }
 
 // Get the value of a key
@@ -33,7 +35,12 @@ func (h *Handlers) Get(c *client) error {
 
 	key := c.args[1]
 
-	value, err := c.db.Get(key)
+	var value string
+	err := h.atomic(c, func() (err error) {
+		value, err = c.db.Get(key)
+		return err
+	})
+
 	if err != nil {
 		return err
 	}
@@ -53,9 +60,12 @@ func (h *Handlers) Set(c *client) error {
 
 	key, value := c.args[1], c.args[2]
 
-	err := c.db.Set(key, value)
+	err := h.atomic(c, func() error {
+		return c.db.Set(key, value)
+	})
+
 	if err != nil {
-		return fmt.Errorf("storage.Set: %w", err)
+		return err
 	}
 
 	return c.writeResponse(resp.NewSimpleString("OK"))
@@ -96,7 +106,16 @@ func (h *Handlers) IncrBy(c *client) error {
 		return ErrValueNotInt
 	}
 
-	newValue, err := c.db.IncrementBy(key, incr)
+	return h.incrBy(c, key, incr)
+}
+
+func (h *Handlers) incrBy(c *client, key string, incr int) error {
+	var newValue string
+	err := h.atomic(c, func() (err error) {
+		newValue, err = c.db.IncrementBy(key, incr)
+		return err
+	})
+
 	if err != nil {
 		return err
 	}
@@ -116,12 +135,7 @@ func (h *Handlers) Incr(c *client) error {
 
 	key := c.args[1]
 
-	newValue, err := c.db.Increment(key)
-	if err != nil {
-		return err
-	}
-
-	return c.writeResponse(resp.NewSimpleString(newValue))
+	return h.incrBy(c, key, 1)
 }
 
 // DecrBy decrements the number stored at key by decrement.
@@ -141,12 +155,7 @@ func (h *Handlers) DecrBy(c *client) error {
 		return err
 	}
 
-	newValue, err := c.db.DecrementBy(key, decrement)
-	if err != nil {
-		return err
-	}
-
-	return c.writeResponse(resp.NewSimpleString(newValue))
+	return h.incrBy(c, key, -decrement)
 }
 
 // Decr decrements the number stored at key by one.
@@ -161,12 +170,7 @@ func (h *Handlers) Decr(c *client) error {
 
 	key := c.args[1]
 
-	newV, err := c.db.Decrement(key)
-	if err != nil {
-		return nil
-	}
-
-	return c.writeResponse(resp.NewSimpleString(newV))
+	return h.incrBy(c, key, -1)
 }
 
 // DBSize : Return the number of keys in the selected database
@@ -197,10 +201,16 @@ func (h *Handlers) Del(c *client) error {
 	keys := c.args[1:]
 
 	countDeleted := 0
-	for _, key := range keys {
-		if c.db.Del(key) {
-			countDeleted++
+	err := h.atomic(c, func() error {
+		for _, key := range keys {
+			if c.db.Del(key) {
+				countDeleted++
+			}
 		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	return c.writeResponse(resp.NewInteger(countDeleted))
@@ -223,7 +233,7 @@ func (h *Handlers) Echo(c *client) error {
 // Quit asks the server to close the connection. The connection is closed as soon as all pending replies have been written to the client.
 // More: https://redis.io/commands/quit/
 func (h *Handlers) Quit(c *client) error {
-	// TODO: Not quite it. We might we writing a response somewhere else and we
+	// TODO: Not quite it. We might we're writing a response somewhere else and we
 	// should wait until we've finishing writing
 	return c.conn.Close()
 }
@@ -288,7 +298,10 @@ func (h *Handlers) FlushDB(c *client) error {
 		return err
 	}
 
-	if err := c.db.FlushDB(); err != nil {
+	err := h.atomic(c, func() error {
+		return c.db.FlushDB()
+	})
+	if err != nil {
 		return err
 	}
 
@@ -303,9 +316,12 @@ func (h *Handlers) FlushAll(c *client, dbs []Storage) error {
 	}
 
 	for _, db := range dbs {
+		db.Lock()
 		if err := db.FlushDB(); err != nil {
+			db.Unlock()
 			return err
 		}
+		db.Unlock()
 	}
 
 	return c.writeResponse(resp.NewSimpleString("OK"))
@@ -328,7 +344,10 @@ func (h *Handlers) Exists(c *client) error {
 
 	key := c.args[1]
 
-	err := c.db.Exists(key)
+	err := h.atomic(c, func() error {
+		return c.db.Exists(key)
+	})
+
 	if errors.Is(err, ErrNotFound) {
 		return c.writeResponse(resp.NewInteger(0))
 	} else if err != nil {

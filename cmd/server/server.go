@@ -7,6 +7,7 @@ import (
 	"ddia/src/server"
 	"ddia/src/storage"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -26,7 +27,7 @@ func startServer() error {
 	for i := 0; i < len(dbs); i++ {
 		dbs[i] = storage.NewInMemory()
 	}
-	handlers := server.NewHandlers(log)
+	handlers := server.NewHandlers(log, io.Discard)
 	s, err := server.New(
 		handlers,
 		server.WithLogger(log),

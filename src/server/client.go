@@ -15,6 +15,9 @@ type client struct {
 
 	// args are the commands being sent by the network
 	args []string
+	// argsWriter allows to write the command we've received into a writer
+	argsWriter io.WriterTo
+
 	// dbIdx is the ID of the database where the client is connected to. Default to DB 0
 	dbIdx int
 	// db points to the active database the client is connected to. Can be changed used the SELECT command
@@ -65,7 +68,8 @@ func (c *client) readCommand() error {
 		}
 
 		// Load the arguments to the client, to be able to process the request
-		c.args = args
+		c.args = args.Strings()
+		c.argsWriter = args
 
 		return nil
 	case 'P': // Ping, but without being part of SimpleString. I don't know which part of the specs describes this :/
@@ -80,10 +84,10 @@ func (c *client) readCommand() error {
 	}
 }
 
-func (c *client) parseBulkString(conn io.Reader) ([]string, error) {
-	b := resp.Array{}
+func (c *client) parseBulkString(conn io.Reader) (*resp.Array, error) {
+	b := &resp.Array{}
 	_, err := b.ReadFrom(conn)
-	return b.Strings(), err
+	return b, err
 }
 
 func (c *client) close() error {

@@ -5,6 +5,7 @@ import (
 	"ddia/src/server"
 	"ddia/testing/log"
 	"fmt"
+	"io"
 	"os"
 	"testing"
 	"time"
@@ -154,7 +155,7 @@ func TestServer_Auth(t *testing.T) {
 	}
 
 	logger := log.ServerLogger()
-	handlers := server.NewHandlers(logger)
+	handlers := server.NewHandlers(logger, io.Discard)
 
 	options := serverOptions()
 	options = append(options, server.WithConfigurationFile(f.Name()))

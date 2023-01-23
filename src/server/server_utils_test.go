@@ -57,7 +57,7 @@ func testServer(t testing.TB) *server.Server {
 	t.Helper()
 
 	logger := log.ServerLogger()
-	handlers := server.NewHandlers(logger)
+	handlers := server.NewHandlers(logger, io.Discard)
 
 	s, err := server.New(handlers, serverOptions()...)
 	if err != nil {

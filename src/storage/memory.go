@@ -90,9 +90,6 @@ func (m *InMemory) Unlock() {
 
 // Set stores or overwrites the key with the given value
 func (m *InMemory) Set(key, value string) error {
-	m.recordsMux.Lock()
-	defer m.recordsMux.Unlock()
-
 	if err := m.assertType(key, stringKind); err != nil {
 		return err
 	}
@@ -104,9 +101,6 @@ func (m *InMemory) Set(key, value string) error {
 
 // Get returns value of the given key. If the key is not found, returns ErrNotFound
 func (m *InMemory) Get(key string) (string, error) {
-	m.recordsMux.RLock()
-	defer m.recordsMux.RUnlock()
-
 	a, ok := m.records[key]
 	if !ok {
 		return "", server.ErrNotFound
@@ -122,9 +116,6 @@ func (m *InMemory) Get(key string) (string, error) {
 
 // IncrementBy increments the counter key by amount, returning the new value
 func (m *InMemory) IncrementBy(key string, amount int) (string, error) {
-	m.recordsMux.RLock()
-	defer m.recordsMux.RUnlock()
-
 	a, ok := m.records[key]
 	if !ok { // Key does not exist, we create one with default value to 0
 		a = atom{kind: stringKind, value: "0"}
@@ -144,32 +135,13 @@ func (m *InMemory) IncrementBy(key string, amount int) (string, error) {
 	return newValue, nil
 }
 
-// Increment increments the counter key by 1, returning the new value
-func (m *InMemory) Increment(key string) (string, error) {
-	return m.IncrementBy(key, 1)
-}
-
-// Decrement decrements the counter key by 1, returning the new value
-func (m *InMemory) Decrement(key string) (string, error) {
-	return m.DecrementBy(key, 1)
-}
-
-// DecrementBy decrements the counter key by amount, returning the new value
-func (m *InMemory) DecrementBy(key string, amount int) (string, error) {
-	return m.IncrementBy(key, -amount)
-}
-
 // Size returns the number of keys being stored
 func (m *InMemory) Size() int {
-	m.recordsMux.RLock()
-	defer m.recordsMux.RUnlock()
 	return len(m.records)
 }
 
 // Del removes a key. Returns true if existed, False otherwise.
 func (m *InMemory) Del(key string) bool {
-	m.recordsMux.Lock()
-	defer m.recordsMux.Unlock()
 	_, found := m.records[key]
 	delete(m.records, key)
 	return found
@@ -177,9 +149,6 @@ func (m *InMemory) Del(key string) bool {
 
 // FlushDB removes all keys in the database
 func (m *InMemory) FlushDB() error {
-	m.recordsMux.Lock()
-	defer m.recordsMux.Unlock()
-
 	m.records = make(map[string]atom)
 
 	return nil
@@ -187,9 +156,6 @@ func (m *InMemory) FlushDB() error {
 
 // Exists returns ErrNotFound if key does not exist, return null otherwise
 func (m *InMemory) Exists(key string) error {
-	m.recordsMux.Lock()
-	defer m.recordsMux.Unlock()
-
 	_, ok := m.records[key]
 	if !ok {
 		return server.ErrNotFound
