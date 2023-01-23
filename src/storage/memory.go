@@ -175,7 +175,7 @@ func (m *InMemory) FlushDB() error {
 	return nil
 }
 
-// Exists returns ErrNotFound if key does not exists, return null otherwise
+// Exists returns ErrNotFound if key does not exist, return null otherwise
 func (m *InMemory) Exists(key string) error {
 	m.recordsMux.Lock()
 	defer m.recordsMux.Unlock()
