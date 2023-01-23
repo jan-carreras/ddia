@@ -1,5 +1,39 @@
 package server
 
+import (
+	_ "embed"
+	"encoding/json"
+	"fmt"
+)
+
+//go:embed commands.json
+var _commands string
+
+type cmd struct {
+	Name      string `json:"name"`
+	Status    string `json:"status"`
+	Operation string `json:"operation"`
+}
+
+var commands []cmd
+
+func init() {
+	err := json.Unmarshal([]byte(_commands), &commands)
+	if err != nil {
+		panic(fmt.Errorf("unable to decode commands.json: %w", err))
+	}
+	_commands = "" // No use for this variable once unmarshalled
+}
+
+func command(name string) (cmd, bool) {
+	for _, c := range commands {
+		if c.Name == name {
+			return c, true
+		}
+	}
+	return cmd{}, false
+}
+
 const (
 	/* CONNECTION */
 

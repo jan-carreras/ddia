@@ -18,7 +18,8 @@ def fetchCommands(url: str):
     commands = redisCommands.read().decode('utf-8')
 
     implementedCommands = {}
-    with open('./docs/commands.json') as f:
+
+    with open('./src/server/commands.json') as f:
         for cmd in json.loads(f.read()):
             implementedCommands[cmd["name"]] = cmd
 

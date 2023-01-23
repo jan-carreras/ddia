@@ -1,0 +1,87 @@
+[
+  {
+    "name": "get",
+    "status": "implemented",
+    "operation": "read"
+  },
+  {
+    "name": "set",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "echo",
+    "status": "implemented",
+    "operation": "read"
+  },
+  {
+    "name": "ping",
+    "status": "implemented",
+    "operation": "read"
+  },
+  {
+    "name": "getset",
+    "status": "won't-do",
+    "operation": "write"
+  },
+  {
+    "name": "incr",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "incrby",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "decr",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "decrby",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "del",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "quit",
+    "status": "partially-implemented",
+    "operation": "read"
+  },
+  {
+    "name": "select",
+    "status": "implemented",
+    "operation": "read"
+  },
+  {
+    "name": "auth",
+    "status": "implemented",
+    "operation": "read"
+  },
+  {
+    "name": "dbsize",
+    "status": "implemented",
+    "operation": "read"
+  },
+  {
+    "name": "flushdb",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "flushall",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "exists",
+    "status": "implemented",
+    "operation": "read"
+  }
+]
