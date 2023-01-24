@@ -44,14 +44,22 @@ func (b *Str) readFrom(r io.Reader) (n int64, err error) {
 
 	buf := make([]byte, strLen)
 
-	read, err := r.Read(buf)
-	readCount += int64(read)
-	if err != nil {
-		return readCount, fmt.Errorf("r.Read(len=%d): %v", strLen, err)
+	read := 0
+	for read != strLen {
+		c, err := r.Read(buf[read:])
+		read += c
+		readCount += int64(read)
+		if err != nil {
+			return readCount, fmt.Errorf("r.Read(len=%d): %v", strLen, err)
+		}
+
+		if read == 0 {
+			break
+		}
 	}
 
 	if read != strLen {
-		return 0, fmt.Errorf("insufficient data read: expecting Str of length %d, having %d", read, strLen)
+		return 0, fmt.Errorf("insufficient data read: read %d, want %d", read, strLen)
 	}
 
 	b.s = string(buf)

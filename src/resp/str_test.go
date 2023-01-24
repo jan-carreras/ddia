@@ -46,7 +46,7 @@ func TestStr_ReadFrom_Errors(t *testing.T) {
 		{
 			name:                "length and string mismatch: string too short",
 			input:               "10\r\nhello\r\n",
-			expectedErrContains: "insufficient data read",
+			expectedErrContains: "parsing error:",
 		},
 		{
 			name:                "length and string mismatch: string too long",
