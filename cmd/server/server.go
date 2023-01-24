@@ -61,7 +61,7 @@ func startServer() (err error) {
 	// Start the server
 	err = s.Start(context.Background())
 	if err != nil {
-		return fmt.Errorf("start: %w", err)
+		return fmt.Errorf("server.Start: %w", err)
 	}
 
 	waitForGracefulShutdown(l, s)
