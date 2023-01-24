@@ -2,7 +2,6 @@
 package server
 
 import (
-	"bufio"
 	"context"
 	"ddia/src/logger"
 	"ddia/src/resp"
@@ -68,6 +67,10 @@ func New(handlers *Handlers, opts ...Option) (*Server, error) {
 
 // Start starts the redis server
 func (s *Server) Start(ctx context.Context) error {
+	if err := s.restoreAOF(ctx); err != nil {
+		return err
+	}
+
 	listener, err := net.Listen(serverNetwork, fmt.Sprintf("%s:%d", s.options.host, s.options.port))
 	if err != nil {
 		return fmt.Errorf("net.Listen: %w", err)
@@ -130,7 +133,7 @@ func (s *Server) serve(ctx context.Context) {
 			s.logger.Printf("new connection from: %s", conn.RemoteAddr().String())
 
 			// Initialize a client object using the connection and the default DB
-			c := &client{conn: conn, db: s.options.dbs[0], reader: bufio.NewReader(conn)}
+			c := newClient(conn, s.options.dbs[0])
 			if err := s.handleRequest(ctx, c); err != nil {
 				s.logger.Printf("[ERROR] handleRequest: %v\n", err)
 			}
@@ -151,7 +154,7 @@ func (s *Server) handleRequest(_ context.Context, c *client) error {
 		if errors.Is(err, io.EOF) {
 			return nil
 		} else if err != nil {
-			return fmt.Errorf("readCommand: %w", err)
+			return fmt.Errorf("reading command: %w", err)
 		}
 
 		if err := s.processCommand(c); err != nil {

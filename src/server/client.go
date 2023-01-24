@@ -26,6 +26,11 @@ type client struct {
 	authenticated bool
 }
 
+// newClient returns a client
+func newClient(conn io.ReadWriteCloser, db Storage) *client {
+	return &client{conn: conn, db: db, reader: bufio.NewReader(conn)}
+}
+
 // requiredArgs makes sure that the number of arguments is equal to expectedArguments. Returns error otherwise.
 // Note that c.args[0] is the command, and this is not taken into account in the expectedArguments
 // Example: client{args: []string{"set", "hello", "world"}.requiredArgs(2) == true
@@ -64,7 +69,7 @@ func (c *client) readCommand() error {
 	case resp.ArrayOp:
 		args, err := c.parseBulkString(c.reader)
 		if err != nil {
-			return fmt.Errorf("parseBulkString: %w", err)
+			return fmt.Errorf("parsing Bulk String command: %w", err)
 		}
 
 		// Load the arguments to the client, to be able to process the request

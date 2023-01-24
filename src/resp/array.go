@@ -85,7 +85,7 @@ func (b *Array) readFrom(r io.Reader) (n int64, err error) {
 			s := Str{}
 			_, err := s.ReadFrom(r)
 			if err != nil {
-				return 0, fmt.Errorf("str.ReadFrom: %v", err)
+				return 0, err
 			}
 
 			b.strings = append(b.strings, s.String())
