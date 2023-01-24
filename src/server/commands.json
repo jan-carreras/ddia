@@ -93,5 +93,15 @@
     "name": "setnx",
     "status": "implemented",
     "operation": "write"
+  },
+  {
+    "name": "substr",
+    "status": "implemented",
+    "operation": "read"
+  },
+  {
+    "name": "randomkey",
+    "status": "implemented",
+    "operation": "read"
   }
 ]

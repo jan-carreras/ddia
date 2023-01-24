@@ -9,7 +9,17 @@ var _ dataType = (*Str)(nil)
 
 // Str returns a Str datatype
 type Str struct {
-	s string
+	s      string
+	isNull bool
+}
+
+// NewStr returns a Str
+func NewStr(s string) *Str {
+	return &Str{s: s}
+}
+
+func NewNullStr() *Str {
+	return &Str{isNull: true}
 }
 
 // Bytes returns the bytes representation of the string
@@ -20,6 +30,9 @@ func (b *Str) String() string { return b.s }
 
 // WriteTo writes the information on Str and dumps it into the Writer
 func (b *Str) WriteTo(w io.Writer) (int64, error) {
+	if b.isNull {
+		return fprintf(w, "$-1\r\n")
+	}
 	return fprintf(w, "%c%d\r\n%s\r\n", byte(BulkStringOp), len(b.s), b.s)
 }
 
@@ -29,6 +42,7 @@ func (b *Str) ReadFrom(r io.Reader) (int64, error) {
 }
 
 func (b *Str) readFrom(r io.Reader) (n int64, err error) {
+	// TODO: We cannot parse null strings "$-1\r\n"
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("%w: %v", ErrParsingError, err)

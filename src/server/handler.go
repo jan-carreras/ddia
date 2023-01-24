@@ -45,7 +45,7 @@ func (h *Handlers) Get(c *client) error {
 		return err
 	}
 
-	return c.writeResponse(resp.NewSimpleString(value))
+	return c.writeResponse(resp.NewStr(value))
 }
 
 // Set key to hold the string value
@@ -84,7 +84,7 @@ func (h *Handlers) Ping(c *client) error {
 		return c.writeResponse(resp.NewSimpleString("PONG"))
 	}
 
-	response := resp.NewSimpleString(strings.Join(c.args[1:], " "))
+	response := resp.NewStr(strings.Join(c.args[1:], " "))
 	return c.writeResponse(response)
 
 }
@@ -227,7 +227,7 @@ func (h *Handlers) Echo(c *client) error {
 		return ErrWrongNumberArguments
 	}
 
-	return c.writeResponse(resp.NewSimpleString(strings.Join(c.args[1:], " ")))
+	return c.writeResponse(resp.NewStr(strings.Join(c.args[1:], " ")))
 }
 
 // Quit asks the server to close the connection. The connection is closed as soon as all pending replies have been written to the client.
@@ -454,4 +454,83 @@ func (h *Handlers) SetNX(c *client) error {
 	}
 
 	return c.writeResponse(resp.NewInteger(response))
+}
+
+// Substr returns the substring of the string value stored at key, determined by
+// the offsets start and end (both are inclusive)
+// redis> SET mykey "This is a string"
+// "OK"
+// redis> GETRANGE mykey 0 3
+// "This"
+// redis> GETRANGE mykey -3 -1
+// "ing"
+// redis> GETRANGE mykey 0 -1
+// "This is a string"
+// redis> GETRANGE mykey 10 100
+// "string"
+// Note: https://redis.io/commands/substr/
+func (h *Handlers) Substr(c *client) error {
+	if err := c.requiredArgs(3); err != nil {
+		return err
+	}
+
+	key := c.args[1]
+
+	start, err := strconv.Atoi(c.args[2])
+	if err != nil {
+		return ErrValueNotInt
+	}
+
+	end, err := strconv.Atoi(c.args[3])
+	if err != nil {
+		return ErrValueNotInt
+	}
+
+	var value string
+	err = h.atomic(c, func() (err error) {
+		value, err = c.db.Get(key)
+		return err
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// start is out of bounds
+	if start > end || start > len(value) {
+		return c.writeResponse(resp.NewStr(""))
+	}
+
+	// the offsets start and end (both are inclusive), thus the +1 on the end
+	end++
+
+	// Prevent out of bounds offset
+	if end >= len(value) {
+		end = len(value)
+	}
+
+	return c.writeResponse(resp.NewStr(value[start:end]))
+}
+
+// RandomKey return a random key from the currently selected database.
+// More: https://redis.io/commands/randomkey/
+func (h *Handlers) RandomKey(c *client) error {
+	if err := c.requiredArgs(0); err != nil {
+		return err
+	}
+
+	key, ok := "", false
+	err := h.atomic(c, func() error {
+		key, ok = c.db.RandomKey()
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return c.writeResponse(resp.NewNullStr())
+	}
+
+	return c.writeResponse(resp.NewStr(key))
 }

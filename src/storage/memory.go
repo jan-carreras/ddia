@@ -164,6 +164,14 @@ func (m *InMemory) Exists(key string) error {
 	return nil
 }
 
+// RandomKey return a random key from all the records on the present database
+func (m *InMemory) RandomKey() (string, bool) {
+	for k := range m.records {
+		return k, true
+	}
+	return "", false
+}
+
 // assertType returns an error ErrWrongKind if the key exists, and it's different from kind
 func (m *InMemory) assertType(key string, kind kind) error {
 	if atom, ok := m.records[key]; ok && atom.kind != kind {

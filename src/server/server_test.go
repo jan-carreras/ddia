@@ -1,12 +1,15 @@
 package server_test
 
 import (
+	"bytes"
 	"context"
+	"ddia/src/resp"
 	"ddia/src/server"
 	"ddia/testing/log"
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -25,8 +28,10 @@ func TestServer_IncrDecrOperators(t *testing.T) {
 
 	assert := func(n int) {
 		rsp := req("get key")
-		want := fmt.Sprintf("+%d\r\n", n)
-		if rsp != want {
+		s := resp.NewStr(strconv.Itoa(n))
+		want := &bytes.Buffer{}
+		_, _ = s.WriteTo(want)
+		if rsp != want.String() {
 			t.Fatalf("missmatch: %q, want %q", rsp, want)
 		}
 	}
@@ -52,7 +57,7 @@ func TestServer_SetGetDel(t *testing.T) {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	rsp, want = req("get hello"), "+world\r\n"
+	rsp, want = req("get hello"), "$5\r\nworld\r\n"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
@@ -76,12 +81,12 @@ func TestServer_PingEcho(t *testing.T) {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	rsp, want = req("ping hello world"), "+hello world\r\n"
+	rsp, want = req("ping hello world"), "$11\r\nhello world\r\n"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	rsp, want = req("echo hello awesome world"), "+hello awesome world\r\n"
+	rsp, want = req("echo hello awesome world"), "$19\r\nhello awesome world\r\n"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
@@ -100,14 +105,14 @@ func TestServer_Select(t *testing.T) {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 	req("set hello there")
-	rsp, want = req("get hello"), "+there\r\n"
+	rsp, want = req("get hello"), "$5\r\nthere\r\n"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
 	// Back to database 0 again
 	req("select 0")
-	rsp, want = req("get hello"), "+world\r\n"
+	rsp, want = req("get hello"), "$5\r\nworld\r\n"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
@@ -308,7 +313,23 @@ func TestServer_SetNX(t *testing.T) {
 	}
 
 	rsp = req("get hello")
-	if want := "+world\r\n"; rsp != want {
+	if want := "$5\r\nworld\r\n"; rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+}
+
+func TestServer_RandomKey(t *testing.T) {
+	req := makeReq(t)
+
+	rsp := req("randomkey")
+	if want := "$-1\r\n"; rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+
+	req("set hello world")
+
+	rsp = req("randomkey")
+	if want := "$5\r\nhello\r\n"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }

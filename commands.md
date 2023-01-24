@@ -27,14 +27,14 @@
 		✅ mget: Get the values of all the given keys
 		✅ set: Set the string value of a key
 		✅ setnx: Set the value of a key, only if the key does not exist
-		   substr: Get a substring of the string stored at a key
+		✅ substr: Get a substring of the string stored at a key
 	GENERIC
 		✅ del: Delete a key
 		✅ exists: Determine if a key exists
 		   expire: Set a key's time to live in seconds
 		   keys: Find all keys matching the given pattern
 		   move: Move a key to another database
-		   randomkey: Return a random key from the keyspace
+		✅ randomkey: Return a random key from the keyspace
 		   rename: Rename a key
 		   renamenx: Rename a key, only if the new key does not exist
 		   sort: Sort the elements in a list, set or sorted set

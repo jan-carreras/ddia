@@ -61,6 +61,8 @@ const (
 	Set = "SET"
 	// SetNX command
 	SetNX = "SETNX"
+	// Substr command
+	Substr = "SUBSTR"
 	// Del command
 	Del = "DEL"
 	// Incr command
@@ -83,6 +85,8 @@ const (
 	FlushAll = "FLUSHALL"
 	// Config command
 	Config = "CONFIG"
+	// RandomKey command
+	RandomKey = "RANDOMKEY"
 
 	/* GENERIC */
 

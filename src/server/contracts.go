@@ -59,6 +59,7 @@ type stringOperations interface {
 type genericOperations interface {
 	// Del removes a key. Returns true if existed, False otherwise.
 	Del(key string) bool
+	RandomKey() (string, bool)
 }
 
 type serverOperations interface {

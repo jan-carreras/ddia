@@ -191,6 +191,8 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.MGet(c)
 	case SetNX:
 		return s.handlers.SetNX(c)
+	case Substr:
+		return s.handlers.Substr(c)
 	case Set:
 		return s.handlers.Set(c)
 	case DBSize:
@@ -215,6 +217,8 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.Exists(c)
 	case Config:
 		return s.handlers.Config(c, s.config)
+	case RandomKey:
+		return s.handlers.RandomKey(c)
 	default:
 		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)
