@@ -72,11 +72,12 @@ func (c *client) readCommand() error {
 		c.argsWriter = args
 
 		return nil
-	case 'P': // Ping, but without being part of SimpleString. I don't know which part of the specs describes this :/
+	case resp.RawPing: // Ping, but without being part of SimpleString. I don't know which part of the specs describes this :/
 		var s resp.SimpleString
 		_, err := s.ReadFrom(c.reader)
-		if "P"+s.String() == "PING" {
-			c.args = []string{"PING"}
+		cmd := "P" + s.String()
+		if cmd == "PING" {
+			c.args = []string{cmd}
 		}
 		return err
 	default:

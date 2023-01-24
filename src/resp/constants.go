@@ -17,6 +17,10 @@ const (
 	// certain Redis commands, that return collections of elements to the client, use
 	// RESP Arrays as their replies.
 	ArrayOp = '*'
+
+	// RawPing it's a made up name. The redis-benchmark utility sends "PING" (instead of "*1\r\n$4\r\nPING\r\n")
+	// and I think it's kinda like a heartbeat/healthcheck mechanism
+	RawPing = 'P'
 )
 
 const readBufferSize = 512 // bytes
