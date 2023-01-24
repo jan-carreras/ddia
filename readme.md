@@ -28,8 +28,8 @@ behaving as a real server.
 * Storage
     * [x] Persist using Append Only File
     * [x] Write to the WAL before sending OK confirmation to the client
+    * [x] Be able to restart the server and keep the state (even after crash)
     * [ ] Persist using point-in-time Snapshots
-    * [ ] Be able to restart the server and keep the state (even after crash)
 * Features
     * [ ] Implement `expire` commands (set a TTL for a key)
 * Replication
