@@ -33,8 +33,7 @@ func TestWrite(t *testing.T) {
 		t.Fatalf("invalid number of bytes written: %d, want %d", n, want)
 	}
 
-	err = f.Close()
-	if err != nil {
+	if err := a.Close(); err != nil {
 		t.Fatalf("expecting no error: %v", err)
 	}
 
@@ -45,5 +44,22 @@ func TestWrite(t *testing.T) {
 
 	if want := "some datamore data"; string(data) != want {
 		t.Fatalf("information written is not correct: %q. want %q", data, want)
+	}
+
+}
+
+func TestNoOpAOF(t *testing.T) {
+	noOp := aof.NewNoOpAOF()
+	n, err := noOp.Write([]byte("1234"))
+	if err != nil {
+		t.Fatalf("expecting no error: %v", err)
+	}
+
+	if want := 4; n != want {
+		t.Fatalf("invalid count: %d expecting %d", n, want)
+	}
+
+	if err := noOp.Close(); err != nil {
+		t.Fatalf("expecting no error: %v", err)
 	}
 }

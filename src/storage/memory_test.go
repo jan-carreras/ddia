@@ -88,3 +88,38 @@ func TestInMemory_Get_NonExisting(t *testing.T) {
 		t.Fatalf("incorrect error returned: %q, want %q", err.Error(), server.ErrNotFound.Error())
 	}
 }
+
+func TestInMemory_FlushDB(t *testing.T) {
+	store := storage.NewInMemory()
+	store.Set("key", "value")
+
+	s := store.Size()
+	if want := 1; s != want {
+		t.Fatalf("wrong size: %d, want %d", s, want)
+	}
+
+	if err := store.FlushDB(); err != nil {
+		t.Fatalf("expect no error: %v", err)
+	}
+
+	s = store.Size()
+	if want := 0; s != want {
+		t.Fatalf("wrong size: %d, want %d", s, want)
+	}
+}
+
+func TestInMemory_Exists(t *testing.T) {
+	store := storage.NewInMemory()
+
+	store.Set("key", "value")
+
+	err := store.Exists("key")
+	if err != nil {
+		t.Fatalf("expecting no error: %v", err)
+	}
+
+	err = store.Exists("non-existing-key")
+	if !errors.Is(err, server.ErrNotFound) {
+		t.Fatalf("incorrect error returned: %q, want %q", err.Error(), server.ErrNotFound.Error())
+	}
+}
