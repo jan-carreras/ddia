@@ -103,5 +103,10 @@
     "name": "randomkey",
     "status": "implemented",
     "operation": "read"
+  },
+  {
+    "name": "rename",
+    "status": "implemented",
+    "operation": "write"
   }
 ]

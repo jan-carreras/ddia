@@ -59,7 +59,10 @@ type stringOperations interface {
 type genericOperations interface {
 	// Del removes a key. Returns true if existed, False otherwise.
 	Del(key string) bool
+	// RandomKey return a random key from all the records on the present database
 	RandomKey() (string, bool)
+	// Rename renames key to newkey. It returns an error when key does not exist.
+	Rename(oldKey string, newKey string) error
 }
 
 type serverOperations interface {

@@ -333,3 +333,20 @@ func TestServer_RandomKey(t *testing.T) {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }
+
+func TestServer_Rename(t *testing.T) {
+	req := makeReq(t)
+
+	req("set hello world")
+	req("rename hello new-hello")
+	rsp := req("get new-hello")
+
+	if want := "$5\r\nworld\r\n"; rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+
+	rsp = req("exists hello")
+	if want := ":0\r\n"; rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+}

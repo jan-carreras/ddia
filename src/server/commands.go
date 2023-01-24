@@ -87,6 +87,8 @@ const (
 	Config = "CONFIG"
 	// RandomKey command
 	RandomKey = "RANDOMKEY"
+	// Rename command
+	Rename = "RENAME"
 
 	/* GENERIC */
 

@@ -534,3 +534,23 @@ func (h *Handlers) RandomKey(c *client) error {
 
 	return c.writeResponse(resp.NewStr(key))
 }
+
+// Rename renames key to newkey. It returns an error when key does not exist.
+// More: https://redis.io/commands/rename/
+func (h *Handlers) Rename(c *client) error {
+	if err := c.requiredArgs(2); err != nil {
+		return err
+	}
+
+	key, newKey := c.args[1], c.args[2]
+
+	err := h.atomic(c, func() (err error) {
+		return c.db.Rename(key, newKey)
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return c.writeResponse(resp.NewStr("OK"))
+}

@@ -172,6 +172,17 @@ func (m *InMemory) RandomKey() (string, bool) {
 	return "", false
 }
 
+// Rename renames key to newkey. It returns an error when key does not exist.
+func (m *InMemory) Rename(oldKey string, newKey string) error {
+	value, ok := m.records[oldKey]
+	if !ok {
+		return server.ErrNotFound
+	}
+	m.records[newKey] = value
+	delete(m.records, oldKey)
+	return nil
+}
+
 // assertType returns an error ErrWrongKind if the key exists, and it's different from kind
 func (m *InMemory) assertType(key string, kind kind) error {
 	if atom, ok := m.records[key]; ok && atom.kind != kind {

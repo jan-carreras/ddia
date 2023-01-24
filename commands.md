@@ -35,7 +35,7 @@
 		   keys: Find all keys matching the given pattern
 		   move: Move a key to another database
 		✅ randomkey: Return a random key from the keyspace
-		   rename: Rename a key
+		✅ rename: Rename a key
 		   renamenx: Rename a key, only if the new key does not exist
 		   sort: Sort the elements in a list, set or sorted set
 		   ttl: Get the time to live for a key in seconds

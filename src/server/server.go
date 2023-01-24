@@ -219,6 +219,8 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.Config(c, s.config)
 	case RandomKey:
 		return s.handlers.RandomKey(c)
+	case Rename:
+		return s.handlers.Rename(c)
 	default:
 		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)
