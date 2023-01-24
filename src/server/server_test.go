@@ -292,5 +292,23 @@ func TestServer_MGet(t *testing.T) {
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
+}
 
+func TestServer_SetNX(t *testing.T) {
+	req := makeReq(t)
+
+	rsp := req("setnx hello world")
+	if want := ":1\r\n"; rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+
+	rsp = req("setnx hello universe")
+	if want := ":0\r\n"; rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
+
+	rsp = req("get hello")
+	if want := "+world\r\n"; rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
+	}
 }

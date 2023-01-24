@@ -88,5 +88,10 @@
     "name": "mget",
     "status": "implemented",
     "operation": "write"
+  },
+  {
+    "name": "setnx",
+    "status": "implemented",
+    "operation": "write"
   }
 ]

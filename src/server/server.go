@@ -189,6 +189,8 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.Get(c)
 	case MGet:
 		return s.handlers.MGet(c)
+	case SetNX:
+		return s.handlers.SetNX(c)
 	case Set:
 		return s.handlers.Set(c)
 	case DBSize:

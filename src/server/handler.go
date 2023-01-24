@@ -423,3 +423,35 @@ func (h *Handlers) MGet(c *client) error {
 
 	return c.writeResponse(resp.NewArray(values))
 }
+
+// SetNX set key to hold string value if key does not exist.
+// redis> SETNX mykey "Hello"
+// (integer) 1
+// redis> SETNX mykey "World"
+// (integer) 0
+// redis> GET mykey
+// "Hello"
+// More: https://redis.io/commands/setnx/
+func (h *Handlers) SetNX(c *client) error {
+	if err := c.requiredArgs(2); err != nil {
+		return err
+	}
+
+	key, value := c.args[1], c.args[2]
+
+	response := 0
+	err := h.atomic(c, func() error {
+		err := c.db.Exists(key)
+		if errors.Is(err, ErrNotFound) {
+			response = 1
+			return c.db.Set(key, value)
+		}
+		return err
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return c.writeResponse(resp.NewInteger(response))
+}

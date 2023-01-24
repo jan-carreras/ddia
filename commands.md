@@ -26,7 +26,7 @@
 		✅ incrby: Increment the integer value of a key by the given amount
 		✅ mget: Get the values of all the given keys
 		✅ set: Set the string value of a key
-		   setnx: Set the value of a key, only if the key does not exist
+		✅ setnx: Set the value of a key, only if the key does not exist
 		   substr: Get a substring of the string stored at a key
 	GENERIC
 		✅ del: Delete a key

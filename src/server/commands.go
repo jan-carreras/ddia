@@ -59,6 +59,8 @@ const (
 	MGet = "MGET"
 	// Set command
 	Set = "SET"
+	// SetNX command
+	SetNX = "SETNX"
 	// Del command
 	Del = "DEL"
 	// Incr command
