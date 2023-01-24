@@ -32,7 +32,7 @@ func req(t testing.TB, conn net.Conn, req []string) string {
 		t.Fatalf("expecting no error: %q", err.Error())
 	}
 
-	buf := make([]byte, 1024) // This is going to byte my ass, for sure
+	buf := make([]byte, 1024*10) // This is going to byte my ass, for sure
 
 	n, err := reader.Read(buf)
 	if errors.Is(err, io.EOF) {

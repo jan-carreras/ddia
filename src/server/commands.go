@@ -55,6 +55,8 @@ const (
 
 	// Get command
 	Get = "GET"
+	// MGet command
+	MGet = "MGET"
 	// Set command
 	Set = "SET"
 	// Del command

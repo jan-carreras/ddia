@@ -280,10 +280,17 @@ func TestServer_Exists(t *testing.T) {
 	}
 }
 
-func BenchmarkName(b *testing.B) {
-	req := makeReq(b)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		req("set hello world")
+func TestServer_MGet(t *testing.T) {
+	req := makeReq(t)
+
+	req("set one one")
+	req("set two two")
+
+	rsp := req("mget one two")
+
+	want := "*2\r\n$3\r\none\r\n$3\r\ntwo\r\n"
+	if rsp != want {
+		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
+
 }

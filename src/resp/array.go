@@ -1,6 +1,7 @@
 package resp
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"strings"
@@ -17,8 +18,8 @@ type Array struct {
 }
 
 // NewArray returns an Array type
-func NewArray(strings []string) Array {
-	return Array{strings: strings}
+func NewArray(strings []string) *Array {
+	return &Array{strings: strings}
 }
 
 // Bytes returns the []bytes representation of an Array
@@ -39,19 +40,26 @@ func (b *Array) WriteTo(w io.Writer) (int64, error) {
 		length = -1
 	}
 
+	buf := bufio.NewWriter(w)
+
 	count := 0
-	n, err := fmt.Fprintf(w, "%c%d\r\n", byte(ArrayOp), length)
+	n, err := fmt.Fprintf(buf, "%c%d\r\n", byte(ArrayOp), length)
 	if err != nil {
-		return 0, fmt.Errorf("unable to start message: %w", err)
+		return int64(n), fmt.Errorf("unable to start message: %w", err)
 	}
 	count += n
 
 	for _, s := range b.strings {
-		n, err := fmt.Fprintf(w, "%c%d\r\n%s\r\n", byte(BulkStringOp), len(s), s)
+		s := s
+		n, err := fmt.Fprintf(buf, "%c%d\r\n%s\r\n", byte(BulkStringOp), len(s), s)
 		if err != nil {
 			return 0, fmt.Errorf("unable to write a word in message: %w", err)
 		}
 		count += n
+	}
+
+	if err := buf.Flush(); err != nil {
+		return int64(count), err
 	}
 
 	return int64(count), nil

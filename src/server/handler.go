@@ -369,7 +369,7 @@ func (h *Handlers) Config(c *client, config config.Config) error {
 	cmd := c.args[1]
 	if strings.ToUpper(cmd) == "GET" {
 		key := c.args[2]
-		value := resp.Array{}
+		var value *resp.Array
 		switch key {
 		case "save":
 			value = resp.NewArray([]string{"save", "3600 1 300 100 60 10000"})
@@ -380,9 +380,46 @@ func (h *Handlers) Config(c *client, config config.Config) error {
 			value = resp.NewArray([]string{key, v})
 		}
 
-		return c.writeResponse(&value)
+		return c.writeResponse(value)
 	}
 
 	err := resp.NewError(fmt.Sprintf("ERR unknown subcommand '%s'.", cmd))
 	return c.writeResponse(err)
+}
+
+// MGet returns the values of all specified keys.
+// redis> SET key1 "Hello"
+// "OK"
+// redis> SET key2 "World"
+// "OK"
+// redis> MGET key1 key2 nonexisting
+// 1) "Hello"
+// 2) "World"
+// 3) (nil)
+// More: https://redis.io/commands/mget/
+func (h *Handlers) MGet(c *client) error {
+	if len(c.args) <= 1 {
+		return ErrWrongNumberArguments
+	}
+
+	keys := c.args[1:]
+
+	values := make([]string, 0)
+	err := h.atomic(c, func() error {
+		for _, key := range keys {
+			value, err := c.db.Get(key)
+			if err != nil {
+				return err
+			}
+			values = append(values, value)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return c.writeResponse(resp.NewArray(values))
 }

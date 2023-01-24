@@ -187,6 +187,8 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.Select(c, s.options.dbs)
 	case Get:
 		return s.handlers.Get(c)
+	case MGet:
+		return s.handlers.MGet(c)
 	case Set:
 		return s.handlers.Set(c)
 	case DBSize:

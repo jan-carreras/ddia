@@ -83,5 +83,10 @@
     "name": "exists",
     "status": "implemented",
     "operation": "read"
+  },
+  {
+    "name": "mget",
+    "status": "implemented",
+    "operation": "write"
   }
 ]
