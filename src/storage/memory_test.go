@@ -91,7 +91,7 @@ func TestInMemory_Get_NonExisting(t *testing.T) {
 
 func TestInMemory_FlushDB(t *testing.T) {
 	store := storage.NewInMemory()
-	store.Set("key", "value")
+	_ = store.Set("key", "value")
 
 	s := store.Size()
 	if want := 1; s != want {
@@ -111,7 +111,7 @@ func TestInMemory_FlushDB(t *testing.T) {
 func TestInMemory_Exists(t *testing.T) {
 	store := storage.NewInMemory()
 
-	store.Set("key", "value")
+	_ = store.Set("key", "value")
 
 	err := store.Exists("key")
 	if err != nil {
