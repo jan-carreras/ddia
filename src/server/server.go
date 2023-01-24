@@ -84,6 +84,23 @@ func (s *Server) Start(ctx context.Context) error {
 	return nil
 }
 
+// Stop stops the server
+func (s *Server) Stop() error {
+	s.quitOnce.Do(func() {
+		close(s.quit)
+	})
+	err := s.listener.Close() // Close listener, thus new connections
+	s.wg.Wait()               // Waiting for clients to finish
+	return err
+}
+
+// Addr returns the address where the server is listening
+//
+//	Example: "192.0.2.1:25", "[2001:db8::1]:80"
+func (s *Server) Addr() string {
+	return s.addr
+}
+
 // serve is to be run as a Goroutine
 func (s *Server) serve(ctx context.Context) {
 	defer s.wg.Done()
@@ -120,23 +137,6 @@ func (s *Server) serve(ctx context.Context) {
 			s.logger.Printf("connection closed: %s", conn.RemoteAddr().String())
 		}()
 	}
-}
-
-// Stop stops the server
-func (s *Server) Stop() error {
-	s.quitOnce.Do(func() {
-		close(s.quit)
-	})
-	err := s.listener.Close() // Close listener, thus new connections
-	s.wg.Wait()               // Waiting for clients to finish
-	return err
-}
-
-// Addr returns the address where the server is listening
-//
-//	Example: "192.0.2.1:25", "[2001:db8::1]:80"
-func (s *Server) Addr() string {
-	return s.addr
 }
 
 func (s *Server) handleRequest(_ context.Context, c *client) error {
