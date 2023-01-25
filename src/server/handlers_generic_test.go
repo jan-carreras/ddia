@@ -2,7 +2,7 @@ package server_test
 
 import "testing"
 
-func TestServer_SetGetDel(t *testing.T) {
+func TestHandler_SetGetDel(t *testing.T) {
 	req := makeReq(t)
 
 	rsp, want := req("set hello world"), "+OK\r\n"
@@ -26,7 +26,7 @@ func TestServer_SetGetDel(t *testing.T) {
 	}
 }
 
-func TestServer_Exists(t *testing.T) {
+func TestHandler_Exists(t *testing.T) {
 	req := makeReq(t)
 
 	rsp, want := req("exists hello"), ":0\r\n"
@@ -42,7 +42,7 @@ func TestServer_Exists(t *testing.T) {
 	}
 }
 
-func TestServer_RandomKey(t *testing.T) {
+func TestHandler_RandomKey(t *testing.T) {
 	req := makeReq(t)
 
 	rsp := req("randomkey")
@@ -58,7 +58,7 @@ func TestServer_RandomKey(t *testing.T) {
 	}
 }
 
-func TestServer_Rename(t *testing.T) {
+func TestHandler_Rename(t *testing.T) {
 	req := makeReq(t)
 
 	req("set hello world")

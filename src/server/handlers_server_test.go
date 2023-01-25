@@ -2,7 +2,7 @@ package server_test
 
 import "testing"
 
-func TestServer_DBSize(t *testing.T) {
+func TestHandler_DBSize(t *testing.T) {
 	req := makeReq(t)
 
 	rsp, want := req("dbsize"), ":0\r\n"
@@ -20,7 +20,7 @@ func TestServer_DBSize(t *testing.T) {
 	}
 }
 
-func TestServer_FlushAll(t *testing.T) {
+func TestHandler_FlushAll(t *testing.T) {
 	req := makeReq(t)
 
 	rsp, want := req("flushall"), "+OK\r\n"
@@ -58,7 +58,7 @@ func TestServer_FlushAll(t *testing.T) {
 	})
 }
 
-func TestServer_FlushDB(t *testing.T) {
+func TestHandler_FlushDB(t *testing.T) {
 	req := makeReq(t)
 
 	rsp, want := req("flushdb"), "+OK\r\n"

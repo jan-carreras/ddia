@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestServer_IncrDecrOperators(t *testing.T) {
+func TestHandler_IncrDecrOperators(t *testing.T) {
 	req := makeReq(t)
 
 	assert := func(n int) {
@@ -33,7 +33,7 @@ func TestServer_IncrDecrOperators(t *testing.T) {
 	assert(1)
 }
 
-func TestServer_MGet(t *testing.T) {
+func TestHandler_MGet(t *testing.T) {
 	req := makeReq(t)
 
 	req("set one one")
@@ -47,7 +47,7 @@ func TestServer_MGet(t *testing.T) {
 	}
 }
 
-func TestServer_SetNX(t *testing.T) {
+func TestHandler_SetNX(t *testing.T) {
 	req := makeReq(t)
 
 	rsp := req("setnx hello world")

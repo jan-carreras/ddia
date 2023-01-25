@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestServer_Auth(t *testing.T) {
+func TestHandler_Auth(t *testing.T) {
 	d := t.TempDir()
 	f, err := os.Create(fmt.Sprintf("%s/redis.conf", d))
 	if err != nil {
@@ -64,7 +64,7 @@ func TestServer_Auth(t *testing.T) {
 	}
 }
 
-func TestServer_PingEcho(t *testing.T) {
+func TestHandler_PingEcho(t *testing.T) {
 	req := makeReq(t)
 
 	rsp, want := req("ping"), "+PONG\r\n"
@@ -83,7 +83,7 @@ func TestServer_PingEcho(t *testing.T) {
 	}
 }
 
-func TestServer_Select(t *testing.T) {
+func TestHandler_Select(t *testing.T) {
 	req := makeReq(t)
 
 	// Database 0
