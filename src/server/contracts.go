@@ -30,6 +30,9 @@ var ErrDBIndexOutOfRange = errors.New("db index out of range")
 // ErrOperationNotPermitted is returned when the user is not authenticated and cannot perform that command
 var ErrOperationNotPermitted = errors.New("operation not permitted")
 
+// ErrIndexOurOfRange is used when trying to access to a list index out of range
+var ErrIndexOurOfRange = errors.New("index out of range")
+
 // Storage defines the interface that the Server needs to store things
 type Storage interface {
 	atomic

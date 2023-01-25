@@ -273,6 +273,8 @@ func handleWellKnownErrors(c *client, err error) error {
 		rsp = resp.NewError(fmt.Sprintf("ERR wrong number of arguments for '%s' command", c.command()))
 	} else if errors.Is(err, ErrOperationNotPermitted) {
 		rsp = resp.NewError("NOAUTH Authentication required")
+	} else if errors.Is(err, ErrIndexOurOfRange) {
+		rsp = resp.NewError("ERR index out of range")
 	}
 
 	if rsp != nil {
