@@ -18,6 +18,7 @@ func NewStr(s string) *Str {
 	return &Str{s: s}
 }
 
+// NewNullStr returns a null string
 func NewNullStr() *Str {
 	return &Str{isNull: true}
 }
