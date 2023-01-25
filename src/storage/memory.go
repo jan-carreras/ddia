@@ -36,7 +36,7 @@ const (
 // atom represents an indivisible datatype of a certain type
 type atom struct {
 	kind  kind
-	value interface{}
+	value any
 }
 
 func (a atom) String() (string, error) {
