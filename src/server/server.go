@@ -142,6 +142,9 @@ func (s *Server) serve(ctx context.Context) {
 	}
 }
 
+// handleRequest is an infinite loop that reads a command from the client, and
+// process it. If the client closes the connection gracefully, or there is a
+// major error, we exit closing the connection.
 func (s *Server) handleRequest(_ context.Context, c *client) error {
 	defer func() {
 		if err := c.close(); err != nil {
@@ -163,6 +166,8 @@ func (s *Server) handleRequest(_ context.Context, c *client) error {
 	}
 }
 
+// processCommand maps/binds each command name with its handler. If the command
+// is not mapped, UnknownCommand handler is called
 func (s *Server) processCommand(c *client) (err error) {
 	defer func() {
 		// Processes all well known errors and returns a response to the client
@@ -242,6 +247,17 @@ func (s *Server) isAuthenticated(c *client) error {
 	return ErrOperationNotPermitted
 }
 
+// handleWellKnownErrors it's a simple way to map Go errors into "network errors"
+// so that each Handler don't have to do this mapping every time. A handler, of
+// course, can capture any of those exceptions and return something different if
+// the particular error has a different meaning in that context (eg: EXISTS will
+// return "0" if the given key is Not Found).
+//
+// Every time you declare a new error that has a well-known "wire format"
+// remember to add it here.
+//
+// TODO: Possible improvement is to declare custom type errors and we can bake in
+// those messages inside the error itself
 func handleWellKnownErrors(c *client, err error) error {
 	var rsp io.WriterTo
 
