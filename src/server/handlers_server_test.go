@@ -5,8 +5,7 @@ import "testing"
 func TestHandler_DBSize(t *testing.T) {
 	req := makeReq(t)
 
-	rsp, want := req("dbsize"), "0"
-	if rsp != want {
+	if rsp, want := req("dbsize"), "0"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
@@ -14,8 +13,7 @@ func TestHandler_DBSize(t *testing.T) {
 	req("set two 2")
 	req("set three 3")
 
-	rsp, want = req("dbsize"), "3"
-	if rsp != want {
+	if rsp, want := req("dbsize"), "3"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }
@@ -23,8 +21,7 @@ func TestHandler_DBSize(t *testing.T) {
 func TestHandler_FlushAll(t *testing.T) {
 	req := makeReq(t)
 
-	rsp, want := req("flushall"), "OK"
-	if rsp != want {
+	if rsp, want := req("flushall"), "OK"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
@@ -34,25 +31,21 @@ func TestHandler_FlushAll(t *testing.T) {
 		req("select 1")
 		req("set hello world")
 
-		rsp, want := req("dbsize"), "1"
-		if rsp != want {
+		if rsp, want := req("dbsize"), "1"; rsp != want {
 			t.Fatalf("invalid response: %q want %q", rsp, want)
 		}
 
-		rsp, want = req("flushall"), "OK"
-		if rsp != want {
+		if rsp, want := req("flushall"), "OK"; rsp != want {
 			t.Fatalf("invalid response: %q want %q", rsp, want)
 		}
 
 		// Database is empty after flush
-		rsp, want = req("dbsize"), "0"
-		if rsp != want {
+		if rsp, want := req("dbsize"), "0"; rsp != want {
 			t.Fatalf("invalid response: %q want %q", rsp, want)
 		}
 
 		req("select 0")
-		rsp, want = req("dbsize"), "0"
-		if rsp != want {
+		if rsp, want := req("dbsize"), "0"; rsp != want {
 			t.Fatalf("invalid response: %q want %q", rsp, want)
 		}
 	})
@@ -61,8 +54,7 @@ func TestHandler_FlushAll(t *testing.T) {
 func TestHandler_FlushDB(t *testing.T) {
 	req := makeReq(t)
 
-	rsp, want := req("flushdb"), "OK"
-	if rsp != want {
+	if rsp, want := req("flushdb"), "OK"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
@@ -70,19 +62,16 @@ func TestHandler_FlushDB(t *testing.T) {
 		req("set hello world")
 		req("set answer-to-everything 42")
 
-		rsp, want := req("dbsize"), "2"
-		if rsp != want {
+		if rsp, want := req("dbsize"), "2"; rsp != want {
 			t.Fatalf("invalid response: %q want %q", rsp, want)
 		}
 
-		rsp, want = req("flushdb"), "OK"
-		if rsp != want {
+		if rsp, want := req("flushdb"), "OK"; rsp != want {
 			t.Fatalf("invalid response: %q want %q", rsp, want)
 		}
 
 		// Database is empty after flush
-		rsp, want = req("dbsize"), "0"
-		if rsp != want {
+		if rsp, want := req("dbsize"), "0"; rsp != want {
 			t.Fatalf("invalid response: %q want %q", rsp, want)
 		}
 	})

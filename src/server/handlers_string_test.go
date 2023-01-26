@@ -44,18 +44,15 @@ func TestHandler_MGet(t *testing.T) {
 func TestHandler_SetNX(t *testing.T) {
 	req := makeReq(t)
 
-	rsp := req("setnx hello world")
-	if want := "1"; rsp != want {
+	if rsp, want := req("setnx hello world"), "1"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	rsp = req("setnx hello universe")
-	if want := "0"; rsp != want {
+	if rsp, want := req("setnx hello universe"), "0"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	rsp = req("get hello")
-	if want := "world"; rsp != want {
+	if rsp, want := req("get hello"), "world"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }
