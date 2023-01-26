@@ -20,10 +20,16 @@ type DataType interface {
 func readLength(r io.Reader) (int, error) {
 	var num byte
 	arrayLength := 0
+	var negativeSign bool
 	for i := 0; ; i++ {
 		err := binary.Read(r, binary.BigEndian, &num)
 		if err != nil {
 			return 0, err
+		}
+
+		if i == 0 && num == '-' {
+			negativeSign = true
+			continue
 		}
 
 		// The first element should always be numeric
@@ -43,6 +49,10 @@ func readLength(r io.Reader) (int, error) {
 		}
 
 		arrayLength = (arrayLength * 10) + int(num-'0')
+	}
+
+	if negativeSign {
+		arrayLength *= -1
 	}
 
 	return arrayLength, nil
