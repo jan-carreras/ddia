@@ -25,8 +25,11 @@ func NewNullSimpleString() *SimpleString {
 // ReadFrom reads from the Reader and loads the SimpleString object
 // Example: "+OK\r\n"
 func (s *SimpleString) ReadFrom(r io.Reader) (c int64, err error) {
-	// TODO: We don't know how to read null strings!
 	c, s.string, err = readFrom(r)
+	if s.string == "-1" {
+		s.string = ""
+		s.isNull = true
+	}
 	return c, err
 }
 
@@ -39,7 +42,12 @@ func (s *SimpleString) WriteTo(w io.Writer) (int64, error) {
 }
 
 // String returns the String representation of the object
-func (s *SimpleString) String() string { return s.string }
+func (s *SimpleString) String() string {
+	if s.isNull {
+		return "null"
+	}
+	return s.string
+}
 
 // Bytes returns the String representation encoded in []bytes
 func (s *SimpleString) Bytes() []byte { return []byte(s.string) }

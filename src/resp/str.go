@@ -27,7 +27,12 @@ func NewNullStr() *Str {
 func (b *Str) Bytes() []byte { return []byte(b.s) }
 
 // String returns the string representation of Str datatype
-func (b *Str) String() string { return b.s }
+func (b *Str) String() string {
+	if b.isNull {
+		return "null"
+	}
+	return b.s
+}
 
 // WriteTo writes the information on Str and dumps it into the Writer
 func (b *Str) WriteTo(w io.Writer) (int64, error) {
@@ -43,7 +48,6 @@ func (b *Str) ReadFrom(r io.Reader) (int64, error) {
 }
 
 func (b *Str) readFrom(r io.Reader) (n int64, err error) {
-	// TODO: We cannot parse null strings "$-1\r\n"
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("%w: %v", ErrParsingError, err)
@@ -55,6 +59,11 @@ func (b *Str) readFrom(r io.Reader) (n int64, err error) {
 	strLen, err := readLength(r)
 	if err != nil {
 		return readCount, fmt.Errorf("readLength: %v", err)
+	}
+
+	if strLen == -1 {
+		b.isNull = true
+		return 5, nil
 	}
 
 	buf := make([]byte, strLen)
