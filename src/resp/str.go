@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-var _ dataType = (*Str)(nil)
+var _ DataType = (*Str)(nil)
 
 // Str returns a Str datatype
 type Str struct {

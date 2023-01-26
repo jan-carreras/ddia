@@ -4,7 +4,7 @@ import (
 	"io"
 )
 
-var _ dataType = (*Error)(nil)
+var _ DataType = (*Error)(nil)
 
 // Error defines a protocol error
 type Error struct {

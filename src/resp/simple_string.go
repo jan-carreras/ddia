@@ -4,7 +4,7 @@ import (
 	"io"
 )
 
-var _ dataType = (*SimpleString)(nil)
+var _ DataType = (*SimpleString)(nil)
 
 // SimpleString returns a SimpleString datatype
 type SimpleString struct {

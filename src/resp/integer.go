@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-var _ dataType = (*Integer)(nil)
+var _ DataType = (*Integer)(nil)
 
 // Integer datatype defines a Integer value
 type Integer struct {

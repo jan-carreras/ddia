@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var _ dataType = (*Array)(nil)
+var _ DataType = (*Array)(nil)
 
 // Array : Clients send commands to the Redis server using RESP Arrays. Similarly,
 // certain Redis commands, that return collections of elements to the client, use

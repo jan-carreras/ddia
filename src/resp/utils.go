@@ -10,8 +10,8 @@ import (
 // ErrParsingError returned when we cannot parse some information
 var ErrParsingError = errors.New("parsing error")
 
-// dataType is the interface to be implemented by each datatype on RESP
-type dataType interface {
+// DataType is the interface to be implemented by each datatype on RESP
+type DataType interface {
 	io.WriterTo
 	io.ReaderFrom
 	fmt.Stringer
