@@ -8,18 +8,29 @@ import (
 	"ddia/src/storage"
 	"ddia/testing/log"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"strings"
 	"testing"
 )
 
+func parse(t testing.TB, response string) fmt.Stringer {
+	dt, err := resp.Decode(strings.NewReader(response))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return dt
+}
+
 func makeReq(t testing.TB) func(string) string {
 	s := testServer(t)
 	conn := testConn(t, s)
 
 	return func(args string) string {
-		return req(t, conn, strings.Split(args, " "))
+		response := req(t, conn, strings.Split(args, " "))
+		return parse(t, response).String()
 	}
 }
 

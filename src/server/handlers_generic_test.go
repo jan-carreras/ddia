@@ -5,22 +5,22 @@ import "testing"
 func TestHandler_SetGetDel(t *testing.T) {
 	req := makeReq(t)
 
-	rsp, want := req("set hello world"), "+OK\r\n"
+	rsp, want := req("set hello world"), "OK"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	rsp, want = req("get hello"), "$5\r\nworld\r\n"
+	rsp, want = req("get hello"), "world"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	rsp, want = req("del hello"), ":1\r\n"
+	rsp, want = req("del hello"), "1"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	rsp, want = req("get hello"), "+\r\n"
+	rsp, want = req("get hello"), ""
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
@@ -29,14 +29,14 @@ func TestHandler_SetGetDel(t *testing.T) {
 func TestHandler_Exists(t *testing.T) {
 	req := makeReq(t)
 
-	rsp, want := req("exists hello"), ":0\r\n"
+	rsp, want := req("exists hello"), "0"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
 	req("set hello world")
 
-	rsp, want = req("exists hello"), ":1\r\n"
+	rsp, want = req("exists hello"), "1"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
@@ -46,14 +46,14 @@ func TestHandler_RandomKey(t *testing.T) {
 	req := makeReq(t)
 
 	rsp := req("randomkey")
-	if want := "$-1\r\n"; rsp != want {
+	if want := "null"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
 	req("set hello world")
 
 	rsp = req("randomkey")
-	if want := "$5\r\nhello\r\n"; rsp != want {
+	if want := "hello"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }
@@ -65,12 +65,12 @@ func TestHandler_Rename(t *testing.T) {
 	req("rename hello new-hello")
 	rsp := req("get new-hello")
 
-	if want := "$5\r\nworld\r\n"; rsp != want {
+	if want := "world"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
 	rsp = req("exists hello")
-	if want := ":0\r\n"; rsp != want {
+	if want := "0"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }

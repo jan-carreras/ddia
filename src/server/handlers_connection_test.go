@@ -67,17 +67,17 @@ func TestHandler_Auth(t *testing.T) {
 func TestHandler_PingEcho(t *testing.T) {
 	req := makeReq(t)
 
-	rsp, want := req("ping"), "+PONG\r\n"
+	rsp, want := req("ping"), "PONG"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	rsp, want = req("ping hello world"), "$11\r\nhello world\r\n"
+	rsp, want = req("ping hello world"), "hello world"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
-	rsp, want = req("echo hello awesome world"), "$19\r\nhello awesome world\r\n"
+	rsp, want = req("echo hello awesome world"), "hello awesome world"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
@@ -91,19 +91,19 @@ func TestHandler_Select(t *testing.T) {
 
 	// Database 1
 	req("select 1")
-	rsp, want := req("get hello"), "+\r\n"
+	rsp, want := req("get hello"), ""
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 	req("set hello there")
-	rsp, want = req("get hello"), "$5\r\nthere\r\n"
+	rsp, want = req("get hello"), "there"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
 	// Back to database 0 again
 	req("select 0")
-	rsp, want = req("get hello"), "$5\r\nworld\r\n"
+	rsp, want = req("get hello"), "world"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}

@@ -8,7 +8,7 @@ import (
 func TestServer_UnknownCommand(t *testing.T) {
 	req := makeReq(t)
 
-	rsp, want := req("foo"), "-ERR unknown command 'foo'\r\n"
+	rsp, want := req("foo"), "ERR unknown command 'foo'"
 	if rsp != want {
 		t.Fatalf("missmatch: %q, want %q", rsp, want)
 	}

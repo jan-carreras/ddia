@@ -6,6 +6,8 @@ import (
 	"io"
 )
 
+// Decode decodes the network input into the appropriate object. Returns a fmt.Stringer that can return
+// the internal representation of the object as string. It's convinient for debugging.
 func Decode(input io.Reader) (fmt.Stringer, error) {
 	operation, err := readOperation(input)
 	if err != nil {

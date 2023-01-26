@@ -1,36 +1,30 @@
 package server_test
 
 import (
-	"bytes"
-	"ddia/src/resp"
-	"strconv"
 	"testing"
 )
 
 func TestHandler_IncrDecrOperators(t *testing.T) {
 	req := makeReq(t)
 
-	assert := func(n int) {
+	assert := func(want string) {
 		rsp := req("get key")
-		s := resp.NewStr(strconv.Itoa(n))
-		want := &bytes.Buffer{}
-		_, _ = s.WriteTo(want)
-		if rsp != want.String() {
+		if rsp != want {
 			t.Fatalf("missmatch: %q, want %q", rsp, want)
 		}
 	}
 
 	req("incr key")
-	assert(1)
+	assert("1")
 
 	req("decr key")
-	assert(0)
+	assert("0")
 
 	req("incrby key 11")
-	assert(11)
+	assert("11")
 
 	req("decrby key 10")
-	assert(1)
+	assert("1")
 }
 
 func TestHandler_MGet(t *testing.T) {
@@ -41,7 +35,7 @@ func TestHandler_MGet(t *testing.T) {
 
 	rsp := req("mget one two")
 
-	want := "*2\r\n$3\r\none\r\n$3\r\ntwo\r\n"
+	want := "one two"
 	if rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
@@ -51,17 +45,17 @@ func TestHandler_SetNX(t *testing.T) {
 	req := makeReq(t)
 
 	rsp := req("setnx hello world")
-	if want := ":1\r\n"; rsp != want {
+	if want := "1"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
 	rsp = req("setnx hello universe")
-	if want := ":0\r\n"; rsp != want {
+	if want := "0"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 
 	rsp = req("get hello")
-	if want := "$5\r\nworld\r\n"; rsp != want {
+	if want := "world"; rsp != want {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }
