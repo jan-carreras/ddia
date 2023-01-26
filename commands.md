@@ -33,7 +33,7 @@
 		✅ exists: Determine if a key exists
 		   expire: Set a key's time to live in seconds
 		   keys: Find all keys matching the given pattern
-		   move: Move a key to another database
+		✅ move: Move a key to another database
 		✅ randomkey: Return a random key from the keyspace
 		✅ rename: Rename a key
 		   renamenx: Rename a key, only if the new key does not exist

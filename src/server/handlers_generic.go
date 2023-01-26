@@ -3,6 +3,8 @@ package server
 import (
 	"ddia/src/resp"
 	"errors"
+	"strconv"
+	"sync"
 )
 
 // Del removes the specified keys. A key is ignored if it does not exist.
@@ -109,4 +111,65 @@ func (h *Handlers) Rename(c *client) error {
 	}
 
 	return c.writeResponse(resp.NewStr("OK"))
+}
+
+// Move key from the currently selected database (see SELECT) to the specified
+// destination database. When key already exists in the destination database, or
+// it does not exist in the source database, it does nothing.
+// More: https://redis.io/commands/move/
+func (h *Handlers) Move(c *client, dbs []Storage, multiDBMutex *sync.Mutex) error {
+	if err := c.requiredArgs(2); err != nil {
+		return err
+	}
+
+	key, _dbIdx := c.args[1], c.args[2]
+
+	dbIdx, err := strconv.Atoi(_dbIdx)
+	if err != nil {
+		return ErrValueNotInt
+	}
+
+	if dbIdx < 0 || dbIdx >= len(dbs) {
+		return c.writeResponse(resp.NewInteger(0))
+	}
+
+	// This prevents death lock situation where:
+	//   Process 1: locked DB 2, trying to acquire lock of DB 3
+	//   Process 2: locked DB 3, trying to acquire lock of DB 2
+	// If Process 1 and 2 need to fight for the same lock (multiDBMutex) then
+	// this race condition disappear
+	multiDBMutex.Lock()
+	defer multiDBMutex.Unlock()
+
+	err = h.atomic(c, func() error {
+		v, err := c.db.Get(key)
+		if err != nil {
+			return err
+		}
+
+		otherDB := dbs[dbIdx]
+
+		otherDB.Lock()
+		defer otherDB.Unlock()
+
+		if _, err := otherDB.Get(key); errors.Is(err, ErrNotFound) {
+			// When key already exists in the destination database, [...] it does nothing.
+		} else if err != nil {
+			return err
+		}
+
+		if err := otherDB.Set(key, v); err != nil {
+			return err
+		}
+
+		c.db.Del(key)
+
+		return nil
+	})
+
+	if err != nil {
+		return c.writeResponse(resp.NewInteger(0))
+	}
+
+	return c.writeResponse(resp.NewInteger(1))
 }

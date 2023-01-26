@@ -31,6 +31,13 @@ type Server struct {
 	wg       sync.WaitGroup
 	handlers *Handlers
 	config   config.Config
+
+	// multiDBMux prevents deadlocks when trying to acquire locks for more than 1 DB
+	//   Process 1: locked DB 2, trying to acquire lock of DB 3
+	//   Process 2: locked DB 3, trying to acquire lock of DB 2
+	// If Process 1 and 2 need to fight for the same lock (multiDBMutex) then
+	// this race condition disappear
+	multiDBMux sync.Mutex
 }
 
 // New returns a new Redis Server configured with the Options provided
@@ -246,6 +253,8 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.LRange(c)
 	case LTrim:
 		return s.handlers.LTrim(c)
+	case Move:
+		return s.handlers.Move(c, s.options.dbs, &s.multiDBMux)
 	default:
 		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)

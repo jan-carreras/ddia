@@ -64,3 +64,24 @@ func TestHandler_Rename(t *testing.T) {
 		t.Fatalf("invalid response: %q want %q", rsp, want)
 	}
 }
+
+func TestMove(t *testing.T) {
+	req := makeReq(t)
+
+	req("set key value")
+
+	if got, want := req("move key 1"), "1"; got != want {
+		t.Fatalf("expecting key to be moved to the DB=1 succesfully: %s, want %s", got, want)
+	}
+
+	// Check it does not exist on DB 0
+	if got, want := req("get key"), ""; got != want {
+		t.Fatalf("unexpected value: %q, want %q", got, want)
+	}
+
+	// Check it does not exist on DB 1
+	req("select 1")
+	if got, want := req("get key"), "value"; got != want {
+		t.Fatalf("unexpected value: %q, want %q", got, want)
+	}
+}

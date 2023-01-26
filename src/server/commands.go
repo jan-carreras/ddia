@@ -117,4 +117,6 @@ const (
 
 	// Exists command
 	Exists = "EXISTS"
+	// Move command
+	Move = "MOVE"
 )
