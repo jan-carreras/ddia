@@ -41,7 +41,7 @@
 
 # Design options
 
-> Longest section on the spec, level of detail depending on the audience. Describe the engineering approach, include architecture diagram.
+> The longest section on the spec, level of detail depending on the audience. Describe the engineering approach, include architecture diagram.
  
 > Describe various options if possible. Define pros/cons on each one.
 

@@ -85,10 +85,6 @@ func (h *Handlers) Get(conn net.Conn, cmd []string) error {
 
 # Design options
 
-> Longest section on the spec, level of detail depending on the audience. Describe the engineering approach, include architecture diagram.
- 
-> Describe various options if possible. Define pros/cons on each one.
-
 ## Improvement 1: Simplify handler signature
 
 Change signature from:
@@ -200,12 +196,12 @@ func (h *Handlers) Set(_ net.Conn, cmd []string) error {
 * In Go `os.Args` is `[]string` the arguments passed by the CLI
 * In Python it uses `sys.argv` notation
 
-`args` might be more appropiate for a name, and closer to Go notation.
+`args` might be more appropriate for a name, and closer to Go notation.
 
 
 ## Improvement 5: Common errors can be handled outside each specific handler
 
-There are known responses to known errors. They don't need to be processed on each Handler, but can be handeled generically:
+There are known responses to known errors. They don't need to be processed on each Handler, but can be handled generically:
 
 ```go
 func handleWellKnownErrors(c *client, err error) error {

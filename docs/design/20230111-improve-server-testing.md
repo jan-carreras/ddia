@@ -101,7 +101,7 @@ Connection management, graceful shutdown, correct context cancellation propagati
 
 * Will do: `Option 1: Commands`: Needed to keep impelementing commands reliably and a short feedback loop. It's a must to have good testing on commands.
 * Won't do: `Option 2`: Testing the network is a must, but I would rather implement all the pending commands of Redis 1.0.0 and _then_ focus on network, performance, stability.
-* Won't do: `Option 3`: The Wire Protocl (`resp` package) has pretty good coverage already. No need to improve it.
+* Won't do: `Option 3`: The Wire Protocol (`resp` package) has pretty good coverage already. No need to improve it.
 
 
 ## Test plan

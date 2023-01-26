@@ -38,7 +38,7 @@ them to understand how they work, and try to learn more in a practical
 way.
 
 The main pain-point with that, is that without a clear objective it's a little like
-playing with sand. It has not purpose and it's easy washed away.
+playing with sand. It has not purpose, and it's easy washed away.
 
 ### Option 3: Practice _implementing_ the technologies
 
@@ -60,7 +60,7 @@ the problems.
 ## What
 
 I love Redis. I know almost nothing about their internals. I barely
-know all the commands that it exposes, and how the cluster is configured and mantained.
+know all the commands that it exposes, and how the cluster is configured and maintained.
 
 But I love it anyway. What I know about its architecture, tho, is that the creator
 of Redis usually spend weeks/months thinking how to implement a new feature
@@ -70,7 +70,7 @@ proper though and consideration on the implications of adding this feature.
 
 ## Why?
 
-The APIs are very clean, the network protocol is very simple, its a key-value storage
+The APIs are very clean, the network protocol is very simple, it's a key-value storage,
 but I can implement persistence, replication, fault tolerance, read-replicas, etc...
 
 ## How?

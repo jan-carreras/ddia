@@ -113,7 +113,7 @@ func ignoreDelimiterCharacters(s string) (string, error) {
 	return s, nil
 }
 
-// readFrom reads all the content of the reader and returns an string
+// readFrom reads all the content of the reader and returns a string
 func readFrom(r io.Reader) (readCount int64, s string, err error) {
 	buf := make([]byte, readBufferSize)
 	for {
