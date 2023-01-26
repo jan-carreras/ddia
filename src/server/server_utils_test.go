@@ -8,20 +8,19 @@ import (
 	"ddia/src/storage"
 	"ddia/testing/log"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"strings"
 	"testing"
 )
 
-func parse(t testing.TB, response string) fmt.Stringer {
+func parse(t testing.TB, response string) string {
 	dt, err := resp.Decode(strings.NewReader(response))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return dt
+	return dt.String()
 }
 
 func makeReq(t testing.TB) func(string) string {
@@ -30,7 +29,7 @@ func makeReq(t testing.TB) func(string) string {
 
 	return func(args string) string {
 		response := req(t, conn, strings.Split(args, " "))
-		return parse(t, response).String()
+		return parse(t, response)
 	}
 }
 
@@ -43,12 +42,16 @@ func req(t testing.TB, conn net.Conn, req []string) string {
 		t.Fatalf("expecting no error: %q", err.Error())
 	}
 
-	buf := make([]byte, 1024*10) // This is going to byte my ass, for sure
+	buf := make([]byte, 1024*10)
 
 	n, err := reader.Read(buf)
 	if errors.Is(err, io.EOF) {
 	} else if err != nil {
 		t.Fatalf("not expecting error: %q", err.Error())
+	}
+
+	if n == len(buf) {
+		panic("the full buffer is full, that will make the test to fail, review that!")
 	}
 
 	return string(buf[:n])

@@ -48,7 +48,7 @@
 		✅ lrange: Get a range of elements from a list
 		✅ lrem: Remove elements from a list
 		✅ lset: Set the value of an element in a list by its index
-		   ltrim: Trim a list to the specified range
+		✅ ltrim: Trim a list to the specified range
 		✅ rpop: Remove and get the last elements in a list
 		✅ rpush: Append one or multiple elements to a list
 	SET

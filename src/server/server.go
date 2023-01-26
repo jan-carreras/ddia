@@ -244,6 +244,8 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.LRem(c)
 	case LRange:
 		return s.handlers.LRange(c)
+	case LTrim:
+		return s.handlers.LTrim(c)
 	default:
 		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)

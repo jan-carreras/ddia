@@ -7,6 +7,52 @@ import (
 	"fmt"
 )
 
+// LTrim trim an existing list so that it will contain only the specified range
+// of elements specified.
+//
+// TODO: This function is absolutely trash in terms of performance. Many improvements can be made:
+//
+// 1 - Choose either to "remove elements" or generate a new list with the elements we want
+// 2 - Move from the back if we're closer than the beginning of the list
+func (m *InMemory) LTrim(key string, start, stop int) error {
+	l, err := m.listGetKeyOrNew(key)
+	if err != nil {
+		return err
+	}
+
+	toPositive := func(n int) int {
+		if n >= 0 {
+			return n
+		}
+		return l.Len() + n
+	}
+
+	start, stop = toPositive(start), toPositive(stop)
+
+	if stop > l.Len() {
+		stop = l.Len()
+	}
+
+	// Same as "keep no elements in the list"
+	if start > stop {
+		m.saveList(key, list.New())
+		return nil
+	}
+
+	n := l.Front()
+	for i := 0; i < l.Len(); i++ {
+		next := n.Next()
+		if i < start || i > stop {
+			l.Remove(n)
+		}
+		n = next
+	}
+
+	m.saveList(key, l)
+
+	return nil
+}
+
 // LRange returns the specified elements of the list stored at key.
 // More: https://redis.io/commands/lrange/
 //

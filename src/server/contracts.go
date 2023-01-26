@@ -88,6 +88,9 @@ type listOperations interface {
 	LRem(key string, count int, element string) (int, error)
 	// LRange returns the specified elements of the list stored at key.
 	LRange(key string, start, stop int) ([]string, error)
+	// LTrim trim an existing list so that it will contain only the specified range
+	// of elements specified.
+	LTrim(key string, start, stop int) error
 }
 type serverOperations interface {
 	// Size returns the number of keys being stored

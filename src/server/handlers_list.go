@@ -6,6 +6,37 @@ import (
 	"strconv"
 )
 
+// LTrim trim an existing list so that it will contain only the specified range
+// of elements specified. Both start and stop are zero-based indexes, where 0 is
+// the first element of the list (the head), 1 the next element and so on.
+//
+// More: https://redis.io/commands/ltrim/
+func (h *Handlers) LTrim(c *client) error {
+	if err := c.requiredArgs(3); err != nil {
+		return err
+	}
+
+	key, _start, _stop := c.args[1], c.args[2], c.args[3]
+
+	start, err := strconv.Atoi(_start)
+	if err != nil {
+		return ErrValueNotInt
+	}
+
+	stop, err := strconv.Atoi(_stop)
+	if err != nil {
+		return err
+	}
+
+	if err := h.atomic(c, func() error {
+		return c.db.LTrim(key, start, stop)
+	}); err != nil {
+		return err
+	}
+
+	return c.writeResponse(resp.NewSimpleString("OK"))
+}
+
 // LRange Returns the specified elements of the list stored at key. The offsets
 // start and stop are zero-based indexes, with 0 being the first element of the
 // list (the head of the list), 1 being the next element and so on. These offsets

@@ -153,5 +153,10 @@
     "name": "rpop",
     "status": "implemented",
     "operation": "write"
+  },
+  {
+    "name": "ltrim",
+    "status": "implemented",
+    "operation": "write"
   }
 ]
