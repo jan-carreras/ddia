@@ -3,6 +3,7 @@
 package storage
 
 import (
+	"container/list"
 	"ddia/src/server"
 	"errors"
 	"strconv"
@@ -27,10 +28,8 @@ const (
 	undefinedKind kind = 0
 	// stringKind represents the String datatype
 	stringKind kind = 1
-	// setKind represents the String datatype
-	setKind kind = 2
-	// mapKind represents the String datatype
-	mapKind kind = 3
+	// setKind represents the List datatype
+	listKind kind = 2
 )
 
 // atom represents an indivisible datatype of a certain type
@@ -62,6 +61,14 @@ func (a atom) Integer() (int, error) {
 		return 0, server.ErrValueNotInt
 	}
 	return i, nil
+}
+
+func (a atom) List() (*list.List, error) {
+	v, ok := a.value.(*list.List)
+	if !ok {
+		return nil, ErrTypeCorruption
+	}
+	return v, nil
 }
 
 // InMemory is the simplest storage possible, storing everything in a Go map

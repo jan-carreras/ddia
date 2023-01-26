@@ -108,5 +108,50 @@
     "name": "rename",
     "status": "implemented",
     "operation": "write"
+  },
+  {
+    "name": "llen",
+    "status": "implemented",
+    "operation": "read"
+  },
+  {
+    "name": "lrange",
+    "status": "implemented",
+    "operation": "read"
+  },
+  {
+    "name": "lrem",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "lindex",
+    "status": "implemented",
+    "operation": "read"
+  },
+  {
+    "name": "lset",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "lpush",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "rpush",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "lpop",
+    "status": "implemented",
+    "operation": "write"
+  },
+  {
+    "name": "rpop",
+    "status": "implemented",
+    "operation": "write"
   }
 ]

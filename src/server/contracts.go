@@ -39,6 +39,7 @@ type Storage interface {
 	stringOperations
 	genericOperations
 	serverOperations
+	listOperations
 }
 
 type atomic interface {
@@ -68,6 +69,26 @@ type genericOperations interface {
 	Rename(oldKey string, newKey string) error
 }
 
+type listOperations interface {
+	// LLen returns the length of the list stored at key
+	LLen(key string) (int, error)
+	// LPush insert all the specified values at the head of the list stored at key.
+	LPush(key string, values []string) (int, error)
+	// RPush insert all the specified values at the tail of the list stored at key.
+	RPush(key string, values []string) (int, error)
+	// LPop removes and returns the first elements of the list stored at key.
+	LPop(key string) (string, error)
+	// RPop removes and returns the last elements of the list stored at key.
+	RPop(key string) (string, error)
+	// LSet sets the list element at index to element.
+	LSet(key string, index int, value string) error
+	// LIndex returns the element at "index" index in the list stored at key.
+	LIndex(key string, index int) (string, error)
+	// LRem removes the first count occurrences of elements equal to element from the list stored at key
+	LRem(key string, count int, element string) (int, error)
+	// LRange returns the specified elements of the list stored at key.
+	LRange(key string, start, stop int) ([]string, error)
+}
 type serverOperations interface {
 	// Size returns the number of keys being stored
 	Size() int

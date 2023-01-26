@@ -90,6 +90,29 @@ const (
 	// Rename command
 	Rename = "RENAME"
 
+	/* LISTS */
+
+	// LIndex command
+	LIndex = "LINDEX"
+	// LLen command
+	LLen = "LLEN"
+	// LPop command
+	LPop = "LPOP"
+	// LPush command
+	LPush = "LPUSH"
+	// LRange command
+	LRange = "LRANGE"
+	// LRem command
+	LRem = "LREM"
+	// LSet command
+	LSet = "LSET"
+	// LTrim command
+	LTrim = "LTRIM"
+	// RPop command
+	RPop = "RPOP"
+	// RPush command
+	RPush = "RPUSH"
+
 	/* GENERIC */
 
 	// Exists command

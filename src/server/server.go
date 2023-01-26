@@ -226,6 +226,24 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.RandomKey(c)
 	case Rename:
 		return s.handlers.Rename(c)
+	case LPush:
+		return s.handlers.LPush(c)
+	case RPush:
+		return s.handlers.RPush(c)
+	case LPop:
+		return s.handlers.LPop(c)
+	case RPop:
+		return s.handlers.RPop(c)
+	case LSet:
+		return s.handlers.LSet(c)
+	case LLen:
+		return s.handlers.LLen(c)
+	case LIndex:
+		return s.handlers.LIndex(c)
+	case LRem:
+		return s.handlers.LRem(c)
+	case LRange:
+		return s.handlers.LRange(c)
 	default:
 		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)

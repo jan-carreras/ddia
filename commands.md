@@ -41,16 +41,16 @@
 		   ttl: Get the time to live for a key in seconds
 		   type: Determine the type stored at key
 	LIST
-		   lindex: Get an element from a list by its index
-		   llen: Get the length of a list
-		   lpop: Remove and get the first elements in a list
-		   lpush: Prepend one or multiple elements to a list
-		   lrange: Get a range of elements from a list
-		   lrem: Remove elements from a list
-		   lset: Set the value of an element in a list by its index
+		✅ lindex: Get an element from a list by its index
+		✅ llen: Get the length of a list
+		✅ lpop: Remove and get the first elements in a list
+		✅ lpush: Prepend one or multiple elements to a list
+		✅ lrange: Get a range of elements from a list
+		✅ lrem: Remove elements from a list
+		✅ lset: Set the value of an element in a list by its index
 		   ltrim: Trim a list to the specified range
-		   rpop: Remove and get the last elements in a list
-		   rpush: Append one or multiple elements to a list
+		✅ rpop: Remove and get the last elements in a list
+		✅ rpush: Append one or multiple elements to a list
 	SET
 		   sadd: Add one or more members to a set
 		   scard: Get the number of members in a set
