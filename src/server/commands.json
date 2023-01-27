@@ -114,6 +114,18 @@
         "kind": "generic"
     },
     {
+        "name": "Expire",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "generic"
+    },
+    {
+        "name": "TTL",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "generic"
+    },
+    {
         "name": "DBSize",
         "operation": "read",
         "status": "implemented",

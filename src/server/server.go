@@ -3,6 +3,7 @@ package server
 
 import (
 	"context"
+	"ddia/src/expire"
 	"ddia/src/logger"
 	"ddia/src/resp"
 	"ddia/src/server/config"
@@ -38,6 +39,9 @@ type Server struct {
 	// If Process 1 and 2 need to fight for the same lock (multiDBMutex) then
 	// this race condition disappear
 	multiDBMux sync.Mutex
+
+	// Expire is the object that keeps track of keys that expire at some point in the future
+	expire *expire.Expire
 }
 
 // New returns a new Redis Server configured with the Options provided
@@ -68,24 +72,25 @@ func New(handlers *Handlers, opts ...Option) (*Server, error) {
 		options:  *options,
 		quit:     make(chan interface{}),
 		handlers: handlers,
+		expire:   expire.NewExpire(),
 		config:   c,
 	}, nil
 }
 
 // Start starts the redis server
-func (s *Server) Start(ctx context.Context) error {
+func (s *Server) Start(ctx context.Context) (err error) {
+	go s.lookForKeysToExpire(ctx)
+
 	if err := s.restoreAOF(ctx); err != nil {
 		return err
 	}
 
-	listener, err := net.Listen(serverNetwork, fmt.Sprintf("%s:%d", s.options.host, s.options.port))
+	s.listener, err = net.Listen(serverNetwork, fmt.Sprintf("%s:%d", s.options.host, s.options.port))
 	if err != nil {
 		return fmt.Errorf("net.Listen: %w", err)
 	}
 
-	s.listener = listener
-	s.addr = listener.Addr().String()
-
+	s.addr = s.listener.Addr().String()
 	s.logger.Printf("Listening at %q", s.addr)
 
 	s.wg.Add(1)
@@ -255,6 +260,10 @@ func (s *Server) processCommand(c *client) (err error) {
 		return s.handlers.LTrim(c)
 	case Move:
 		return s.handlers.Move(c, s.options.dbs, &s.multiDBMux)
+	case Expire:
+		return s.handlers.Expire(c, s.expire)
+	case TTL:
+		return s.handlers.TTL(c, s.expire)
 	default:
 		if err := s.handlers.UnknownCommand(c); err != nil {
 			return fmt.Errorf("handlers.UnknownCommand: %w", err)
@@ -265,12 +274,14 @@ func (s *Server) processCommand(c *client) (err error) {
 }
 
 func (s *Server) isAuthenticated(c *client) error {
+	var authenticationOK error // the value is null, which means to be authenticated. Code reads better like this.
+
 	// Reasons why we consider the client to be authenticated:
-	//		c.authenticated is true: Means it has previously been authenticated using a AUTH command
 	//      s.options.password is empty: Means that the server does not require a password at all
+	//		c.authenticated is true: Means it has previously been authenticated using a AUTH command
 	//      The command is AUTH: this command does not require authentication. How would we authenticate otherwise?
 	if s.options.password == "" || c.authenticated || strings.ToUpper(c.command()) == Auth {
-		return nil
+		return authenticationOK
 	}
 
 	return ErrOperationNotPermitted

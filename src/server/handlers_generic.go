@@ -1,10 +1,12 @@
 package server
 
 import (
+	"ddia/src/expire"
 	"ddia/src/resp"
 	"errors"
 	"strconv"
 	"sync"
+	"time"
 )
 
 // Del removes the specified keys. A key is ignored if it does not exist.
@@ -111,6 +113,72 @@ func (h *Handlers) Rename(c *client) error {
 	}
 
 	return c.writeResponse(resp.NewStr("OK"))
+}
+
+func (h *Handlers) TTL(c *client, expire *expire.Expire) error {
+	if err := c.requiredArgs(1); err != nil {
+		return err
+	}
+
+	var ttl int
+
+	key := c.args[1]
+	if err := h.atomic(c, func() error {
+		var ok bool
+
+		if _, err := c.db.Get(key); errors.Is(err, ErrNotFound) {
+			ttl = -2 // [...] if the key does not exist.
+			return nil
+		} else if err != nil {
+			return err
+		} else if ttl, ok = expire.TTL(key); !ok {
+			ttl = -1 // [...] if the key exists but has no associated expire.
+		}
+		return nil
+	}); err != nil {
+		return nil
+	}
+
+	return c.writeResponse(resp.NewInteger(ttl))
+}
+
+// Expire set a timeout on key. After the timeout has expired, the key will
+// automatically be deleted. A key with an associated timeout is often said to be
+// volatile in Redis terminology.
+//
+// More: https://redis.io/commands/expire/
+func (h *Handlers) Expire(c *client, expire *expire.Expire) error {
+	if err := c.requiredArgs(2); err != nil {
+		return err
+	}
+
+	key, _seconds := c.args[1], c.args[2]
+
+	seconds, err := strconv.Atoi(_seconds)
+	if err != nil {
+		return ErrWrongKind
+	}
+
+	result := 1 // if the timeout was set.
+
+	expirationTime := time.Now().Add(time.Duration(seconds) * time.Second).Unix()
+	if err := h.atomic(c, func() error {
+		// Make sure that
+		_, err := c.db.Get(key)
+		if errors.Is(err, ErrNotFound) {
+			result = 0 // if the timeout was not set. e.g. key doesn't exist, or operation skipped due to the provided arguments.
+			return nil // No need
+		} else if err != nil {
+			return err
+		}
+
+		expire.AddUpdate(c.dbIdx, key, expirationTime)
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return c.writeResponse(resp.NewInteger(result))
 }
 
 // Move key from the currently selected database (see SELECT) to the specified
