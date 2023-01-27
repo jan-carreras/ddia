@@ -65,8 +65,13 @@ func (a *AppendOnlyFile) startTicker(ctx context.Context) {
 	}
 }
 
-// Write data into the AOF file
+// Write data into the AOF file. Write needs to be called once per atomic operations. Eg: "select 1; set hello world" must
+// be performed in a single Write call, not in two. Otherwise, the order of the commands in the AOL might be incorrect.
+//
+// Thus, it cannot be AppendOnlyFile cannot be wrapped with bufio.NewWriter because multiple calls might be made
+// to write. Use bytes.Buffer instead
 func (a *AppendOnlyFile) Write(data []byte) (int, error) {
+	// file.Write call already implements a mutex, so it's thread-safe.
 	n, err := a.file.Write(data)
 	if err != nil {
 		return n, err

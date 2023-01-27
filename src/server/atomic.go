@@ -1,7 +1,7 @@
 package server
 
 import (
-	"bufio"
+	"bytes"
 	"ddia/src/resp"
 	"strconv"
 )
@@ -47,18 +47,16 @@ func (h *Handlers) writeToAOF(c *client) error {
 		return nil
 	}
 
-	buf := bufio.NewWriter(h.aof)
-
+	buf := &bytes.Buffer{}
 	sel := resp.NewArray([]string{"SELECT", strconv.Itoa(c.dbIdx)})
 	if _, err := sel.WriteTo(buf); err != nil {
 		return err
 	}
-
 	if _, err := c.argsWriter.WriteTo(buf); err != nil {
 		return err
 	}
 
-	if err := buf.Flush(); err != nil {
+	if _, err := h.aof.Write(buf.Bytes()); err != nil {
 		return err
 	}
 
