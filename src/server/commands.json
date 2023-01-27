@@ -1,172 +1,206 @@
 [
-  {
-    "name": "get",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "set",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "echo",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "ping",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "getset",
-    "status": "won't-do",
-    "operation": "write"
-  },
-  {
-    "name": "incr",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "incrby",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "decr",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "decrby",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "del",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "quit",
-    "status": "partially-implemented",
-    "operation": "read"
-  },
-  {
-    "name": "select",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "auth",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "dbsize",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "flushdb",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "flushall",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "exists",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "mget",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "setnx",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "substr",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "randomkey",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "rename",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "llen",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "lrange",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "lrem",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "lindex",
-    "status": "implemented",
-    "operation": "read"
-  },
-  {
-    "name": "lset",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "lpush",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "rpush",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "lpop",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "rpop",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "ltrim",
-    "status": "implemented",
-    "operation": "write"
-  },
-  {
-    "name": "copy",
-    "status": "implemented",
-    "operation": "write"
-  } ,
-  {
-    "name": "move",
-    "status": "implemented",
-    "operation": "write"
-  }
+    {
+        "name": "Get",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "string"
+    },
+    {
+        "name": "Set",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "string"
+    },
+    {
+        "name": "GetSet",
+        "operation": "write",
+        "status": "won't-do",
+        "kind": "string"
+    },
+    {
+        "name": "Incr",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "string"
+    },
+    {
+        "name": "IncrBy",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "string"
+    },
+    {
+        "name": "Decr",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "string"
+    },
+    {
+        "name": "DecrBy",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "string"
+    },
+    {
+        "name": "Substr",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "string"
+    },
+    {
+        "name": "MGet",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "string"
+    },
+    {
+        "name": "Echo",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "connection"
+    },
+    {
+        "name": "Ping",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "connection"
+    },
+    {
+        "name": "Quit",
+        "operation": "read",
+        "status": "partially-implemented",
+        "kind": "connection"
+    },
+    {
+        "name": "Select",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "connection"
+    },
+    {
+        "name": "Auth",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "connection"
+    },
+    {
+        "name": "Del",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "generic"
+    },
+    {
+        "name": "Exists",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "generic"
+    },
+    {
+        "name": "Move",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "generic"
+    },
+    {
+        "name": "RandomKey",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "generic"
+    },
+    {
+        "name": "Rename",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "generic"
+    },
+    {
+        "name": "DBSize",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "server"
+    },
+    {
+        "name": "FlushDB",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "server"
+    },
+    {
+        "name": "FlushAll",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "server"
+    },
+    {
+        "name": "Config",
+        "operation": "write",
+        "status": "partially-implemented",
+        "kind": "server"
+    },
+    {
+        "name": "SetNX",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "list"
+    },
+    {
+        "name": "LLen",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "list"
+    },
+    {
+        "name": "LRange",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "list"
+    },
+    {
+        "name": "LRem",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "list"
+    },
+    {
+        "name": "LIndex",
+        "operation": "read",
+        "status": "implemented",
+        "kind": "list"
+    },
+    {
+        "name": "LSet",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "list"
+    },
+    {
+        "name": "LPush",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "list"
+    },
+    {
+        "name": "RPush",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "list"
+    },
+    {
+        "name": "LPop",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "list"
+    },
+    {
+        "name": "RPop",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "list"
+    },
+    {
+        "name": "LTrim",
+        "operation": "write",
+        "status": "implemented",
+        "kind": "list"
+    }
 ]

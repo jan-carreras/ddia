@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"ddia/src/resp"
+	"fmt"
 	"strconv"
 )
 
@@ -37,10 +38,10 @@ func (h *Handlers) writeToAOF(c *client) error {
 		return nil
 	}
 
-	cmd, ok := command(c.command())
+	cmd, ok := getCommand(c.command())
 
 	if !ok {
-		return nil
+		panic(fmt.Errorf("command %q is not a known command. AOF might be corrupted", c.command()))
 	}
 
 	if cmd.Operation != "write" {

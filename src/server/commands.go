@@ -1,122 +1,65 @@
 package server
 
 import (
-	_ "embed"
-	"encoding/json"
-	"fmt"
 	"strings"
 )
 
-//go:embed commands.json
-var _commands string
-
 type cmd struct {
 	Name      string `json:"name"`
-	Status    string `json:"status"`
 	Operation string `json:"operation"`
+	Status    string `json:"status"`
+	Kind      string `json:"kind"`
 }
 
-var commands []cmd
-
-func init() {
-	err := json.Unmarshal([]byte(_commands), &commands)
-	if err != nil {
-		panic(fmt.Errorf("unable to decode commands.json: %w", err))
-	}
-	_commands = "" // No use for this variable once unmarshalled
+//go:generate go run gen.go
+var Commands = []cmd{
+	// String commands
+	{Name: "Get", Operation: "read", Status: "implemented", Kind: "string"},
+	{Name: "Set", Operation: "write", Status: "implemented", Kind: "string"},
+	{Name: "GetSet", Operation: "write", Status: "won't-do", Kind: "string"},
+	{Name: "Incr", Operation: "write", Status: "implemented", Kind: "string"},
+	{Name: "IncrBy", Operation: "write", Status: "implemented", Kind: "string"},
+	{Name: "Decr", Operation: "write", Status: "implemented", Kind: "string"},
+	{Name: "DecrBy", Operation: "write", Status: "implemented", Kind: "string"},
+	{Name: "Substr", Operation: "read", Status: "implemented", Kind: "string"},
+	{Name: "MGet", Operation: "read", Status: "implemented", Kind: "string"},
+	// Connection commands
+	{Name: "Echo", Operation: "read", Status: "implemented", Kind: "connection"},
+	{Name: "Ping", Operation: "read", Status: "implemented", Kind: "connection"},
+	{Name: "Quit", Operation: "read", Status: "partially-implemented", Kind: "connection"},
+	{Name: "Select", Operation: "read", Status: "implemented", Kind: "connection"},
+	{Name: "Auth", Operation: "read", Status: "implemented", Kind: "connection"},
+	// Generic commands
+	{Name: "Del", Operation: "write", Status: "implemented", Kind: "generic"},
+	{Name: "Exists", Operation: "read", Status: "implemented", Kind: "generic"},
+	{Name: "Move", Operation: "write", Status: "implemented", Kind: "generic"},
+	{Name: "RandomKey", Operation: "read", Status: "implemented", Kind: "generic"},
+	{Name: "Rename", Operation: "write", Status: "implemented", Kind: "generic"},
+	// Server commands
+	{Name: "DBSize", Operation: "read", Status: "implemented", Kind: "server"},
+	{Name: "FlushDB", Operation: "write", Status: "implemented", Kind: "server"},
+	{Name: "FlushAll", Operation: "write", Status: "implemented", Kind: "server"},
+	{Name: "Config", Operation: "write", Status: "partially-implemented", Kind: "server"},
+	// List commands
+	{Name: "SetNX", Operation: "write", Status: "implemented", Kind: "list"},
+	{Name: "LLen", Operation: "read", Status: "implemented", Kind: "list"},
+	{Name: "LRange", Operation: "read", Status: "implemented", Kind: "list"},
+	{Name: "LRem", Operation: "write", Status: "implemented", Kind: "list"},
+	{Name: "LIndex", Operation: "read", Status: "implemented", Kind: "list"},
+	{Name: "LSet", Operation: "write", Status: "implemented", Kind: "list"},
+	{Name: "LPush", Operation: "write", Status: "implemented", Kind: "list"},
+	{Name: "RPush", Operation: "write", Status: "implemented", Kind: "list"},
+	{Name: "LPop", Operation: "write", Status: "implemented", Kind: "list"},
+	{Name: "RPop", Operation: "write", Status: "implemented", Kind: "list"},
+	{Name: "LTrim", Operation: "write", Status: "implemented", Kind: "list"},
 }
 
-func command(name string) (cmd, bool) {
+func getCommand(name string) (cmd, bool) {
 	name = strings.ToLower(name)
-	for _, c := range commands {
-		if c.Name == name {
+	for _, c := range Commands {
+		if strings.ToLower(c.Name) == name {
 			return c, true
 		}
 	}
 	return cmd{}, false
 }
-
-const (
-	/* CONNECTION */
-
-	// Auth command
-	Auth = "AUTH"
-
-	// Ping command
-	Ping = "PING"
-	// Echo command
-	Echo = "ECHO"
-	// Quit command
-	Quit = "QUIT"
-	// Select command
-	Select = "SELECT"
-
-	/* STRING */
-
-	// Get command
-	Get = "GET"
-	// MGet command
-	MGet = "MGET"
-	// Set command
-	Set = "SET"
-	// SetNX command
-	SetNX = "SETNX"
-	// Substr command
-	Substr = "SUBSTR"
-	// Del command
-	Del = "DEL"
-	// Incr command
-	Incr = "INCR"
-	// IncrBy command
-	IncrBy = "INCRBY"
-	// Decr command
-	Decr = "DECR"
-	// DecrBy command
-	DecrBy = "DECRBY"
-
-	/* SERVER */
-
-	// DBSize command
-	DBSize = "DBSIZE"
-
-	// FlushDB command
-	FlushDB = "FLUSHDB"
-	// FlushAll command
-	FlushAll = "FLUSHALL"
-	// Config command
-	Config = "CONFIG"
-	// RandomKey command
-	RandomKey = "RANDOMKEY"
-	// Rename command
-	Rename = "RENAME"
-
-	/* LISTS */
-
-	// LIndex command
-	LIndex = "LINDEX"
-	// LLen command
-	LLen = "LLEN"
-	// LPop command
-	LPop = "LPOP"
-	// LPush command
-	LPush = "LPUSH"
-	// LRange command
-	LRange = "LRANGE"
-	// LRem command
-	LRem = "LREM"
-	// LSet command
-	LSet = "LSET"
-	// LTrim command
-	LTrim = "LTRIM"
-	// RPop command
-	RPop = "RPOP"
-	// RPush command
-	RPush = "RPUSH"
-
-	/* GENERIC */
-
-	// Exists command
-	Exists = "EXISTS"
-	// Move command
-	Move = "MOVE"
-)
