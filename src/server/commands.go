@@ -11,6 +11,8 @@ type cmd struct {
 	Kind      string `json:"kind"`
 }
 
+// Commands describe all the commands supported (or not) by the Server.
+//
 //go:generate go run gen.go
 var Commands = []cmd{
 	// String commands
@@ -35,6 +37,8 @@ var Commands = []cmd{
 	{Name: "Move", Operation: "write", Status: "implemented", Kind: "generic"},
 	{Name: "RandomKey", Operation: "read", Status: "implemented", Kind: "generic"},
 	{Name: "Rename", Operation: "write", Status: "implemented", Kind: "generic"},
+	{Name: "Expire", Operation: "write", Status: "implemented", Kind: "generic"},
+	{Name: "TTL", Operation: "read", Status: "implemented", Kind: "generic"},
 	// Server commands
 	{Name: "DBSize", Operation: "read", Status: "implemented", Kind: "server"},
 	{Name: "FlushDB", Operation: "write", Status: "implemented", Kind: "server"},
