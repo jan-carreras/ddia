@@ -21,7 +21,7 @@ def fetchCommands(url: str):
 
     with open('./src/server/commands.json') as f:
         for cmd in json.loads(f.read()):
-            implementedCommands[cmd["name"]] = cmd
+            implementedCommands[cmd["name"].lower()] = cmd
 
     regex = r"{\"([a-z_]+)\",\"([^\"]+)\",\"([^\"]+)\",\"([^\"]+)\"(.*COMMAND_GROUP_([A-Z]+)|)"
     matches = re.finditer(regex, commands, re.MULTILINE)
@@ -76,6 +76,8 @@ def printCommands(commands: dict):
         "partially-implemented":  "🏗️ "
     }
 
+    print("This is an automatically generated file! DO NOT EDIT. Run \"rm commands.md && make commands.md\" to regenerate")
+    print()
     for version, commands in commands_by_version.items():
         print( "# {0}".format(version))
         for group, cmds in groupByCommandGroup(commands).items():

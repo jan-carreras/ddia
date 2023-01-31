@@ -1,3 +1,5 @@
+This is an automatically generated file! DO NOT EDIT. Run "rm commands.md && make commands.md" to regenerate
+
 # 1.0.0
 	CONNECTION
 		✅ auth: Authenticate to the server
@@ -31,14 +33,14 @@
 	GENERIC
 		✅ del: Delete a key
 		✅ exists: Determine if a key exists
-		   expire: Set a key's time to live in seconds
+		✅ expire: Set a key's time to live in seconds
 		   keys: Find all keys matching the given pattern
 		✅ move: Move a key to another database
 		✅ randomkey: Return a random key from the keyspace
 		✅ rename: Rename a key
 		   renamenx: Rename a key, only if the new key does not exist
 		   sort: Sort the elements in a list, set or sorted set
-		   ttl: Get the time to live for a key in seconds
+		✅ ttl: Get the time to live for a key in seconds
 		   type: Determine the type stored at key
 	LIST
 		✅ lindex: Get an element from a list by its index
